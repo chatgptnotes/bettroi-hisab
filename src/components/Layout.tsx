@@ -5,6 +5,7 @@ import {
   Plus, 
   History, 
   BarChart3,
+  FileText,
   Calculator 
 } from 'lucide-react'
 
@@ -17,6 +18,7 @@ export const Layout = ({ children }: LayoutProps) => {
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/projects', icon: FolderOpen, label: 'Projects' },
     { to: '/add-transaction', icon: Plus, label: 'Add Transaction' },
+    { to: '/quotations', icon: FileText, label: 'Quotations' },
     { to: '/transactions', icon: History, label: 'History' },
     { to: '/reports', icon: BarChart3, label: 'Reports' },
   ]
