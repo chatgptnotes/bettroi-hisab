@@ -13,6 +13,7 @@ export interface BettroiProject {
   status: 'active' | 'completed' | 'pending' | 'in_process'
   client_name?: string
   notes?: string
+  quote_url?: string
   created_at: string
 }
 
@@ -20,11 +21,25 @@ export interface BettroiTransaction {
   id: string
   project_id: string
   date: string
-  type: 'bill_sent' | 'payment_received' | 'invoice' | 'advance' | 'by_hand'
+  type: 'bill_sent' | 'payment_received' | 'invoice' | 'advance' | 'by_hand' | 'credit_note' | 'refund'
   amount: number
   mode?: 'cash' | 'bank' | 'upi' | 'by_hand' | 'cheque' | 'other'
   notes?: string
+  attachment_url?: string
   created_at: string
+}
+
+export interface BettroiQuotation {
+  id: string
+  project_id?: string
+  quote_date: string
+  amount: number
+  description: string
+  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'revised'
+  notes?: string
+  quote_url?: string
+  created_at: string
+  bettroi_projects?: { name: string }
 }
 
 export interface BettroiMilestone {

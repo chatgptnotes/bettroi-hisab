@@ -1,28 +1,29 @@
 import { useEffect, useState } from 'react'
-import { FileText, Plus, Calendar, Check, X, Clock, Edit3 } from 'lucide-react'
-import { supabase, type BettroiProject } from '../lib/supabase'
-
-interface Quotation {
-  id: string
-  project_id: string
-  quote_date: string
-  amount: number
-  description: string
-  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'revised'
-  notes: string
-  created_at: string
-  bettroi_projects?: { name: string }
-}
+import { FileText, Plus, Check, X, Clock, Edit3, ExternalLink, Search, Edit2, Trash2, Copy, CheckSquare, Square } from 'lucide-react'
+import { supabase, type BettroiProject, type BettroiQuotation } from '../lib/supabase'
+import { EditModal, type FieldDefinition } from '../components/EditModal'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 
 export const Quotations = () => {
-  const [quotations, setQuotations] = useState<Quotation[]>([])
+  const [quotations, setQuotations] = useState<BettroiQuotation[]>([])
+  const [filteredQuotations, setFilteredQuotations] = useState<BettroiQuotation[]>([])
   const [projects, setProjects] = useState<BettroiProject[]>([])
   const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ project_id: '', quote_date: new Date().toISOString().split('T')[0], amount: '', description: '', status: 'sent', notes: '' })
-  const [filter, setFilter] = useState('all')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'status'>('date')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [selectedQuotations, setSelectedQuotations] = useState<Set<string>>(new Set())
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [editingQuotation, setEditingQuotation] = useState<BettroiQuotation | null>(null)
+  const [deletingQuotation, setDeletingQuotation] = useState<BettroiQuotation | null>(null)
+  const [showBulkDelete, setShowBulkDelete] = useState(false)
 
   useEffect(() => { fetchData() }, [])
+
+  useEffect(() => {
+    filterAndSortQuotations()
+  }, [quotations, searchTerm, statusFilter, sortBy, sortOrder])
 
   const fetchData = async () => {
     const { data: q } = await supabase.from('bettroi_quotations').select('*, bettroi_projects(name)').order('quote_date', { ascending: false })
@@ -32,24 +33,111 @@ export const Quotations = () => {
     setLoading(false)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await supabase.from('bettroi_quotations').insert({
-      project_id: form.project_id || null,
-      quote_date: form.quote_date,
-      amount: Number(form.amount) || 0,
-      description: form.description,
-      status: form.status,
-      notes: form.notes,
+  const filterAndSortQuotations = () => {
+    let filtered = quotations.filter(quotation => {
+      const matchesSearch = quotation.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (quotation.bettroi_projects?.name && quotation.bettroi_projects.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      const matchesStatus = statusFilter === 'all' || quotation.status === statusFilter
+      return matchesSearch && matchesStatus
     })
-    setForm({ project_id: '', quote_date: new Date().toISOString().split('T')[0], amount: '', description: '', status: 'sent', notes: '' })
-    setShowForm(false)
+
+    filtered.sort((a, b) => {
+      let aVal: any, bVal: any
+      
+      if (sortBy === 'date') {
+        aVal = new Date(a.quote_date).getTime()
+        bVal = new Date(b.quote_date).getTime()
+      } else if (sortBy === 'amount') {
+        aVal = a.amount
+        bVal = b.amount
+      } else if (sortBy === 'status') {
+        aVal = a.status.toLowerCase()
+        bVal = b.status.toLowerCase()
+      }
+
+      if (sortOrder === 'asc') {
+        return aVal < bVal ? -1 : aVal > bVal ? 1 : 0
+      } else {
+        return aVal > bVal ? -1 : aVal < bVal ? 1 : 0
+      }
+    })
+
+    setFilteredQuotations(filtered)
+  }
+
+  const createQuotation = async (data: Record<string, any>) => {
+    await supabase.from('bettroi_quotations').insert({
+      project_id: data.project_id || null,
+      quote_date: data.quote_date,
+      amount: Number(data.amount) || 0,
+      description: data.description,
+      status: data.status,
+      notes: data.notes,
+      quote_url: data.quote_url
+    })
+    fetchData()
+  }
+
+  const updateQuotation = async (data: Record<string, any>) => {
+    await supabase.from('bettroi_quotations').update({
+      project_id: data.project_id || null,
+      quote_date: data.quote_date,
+      amount: Number(data.amount) || 0,
+      description: data.description,
+      status: data.status,
+      notes: data.notes,
+      quote_url: data.quote_url
+    }).eq('id', editingQuotation!.id)
+    fetchData()
+  }
+
+  const duplicateQuotation = async (original: BettroiQuotation) => {
+    await supabase.from('bettroi_quotations').insert({
+      project_id: original.project_id,
+      quote_date: new Date().toISOString().split('T')[0],
+      amount: original.amount,
+      description: `${original.description} (Copy)`,
+      status: 'draft',
+      notes: original.notes,
+      quote_url: original.quote_url
+    })
+    fetchData()
+  }
+
+  const deleteQuotation = async () => {
+    if (!deletingQuotation) return
+    await supabase.from('bettroi_quotations').delete().eq('id', deletingQuotation.id)
+    fetchData()
+  }
+
+  const bulkDelete = async () => {
+    const ids = Array.from(selectedQuotations)
+    await supabase.from('bettroi_quotations').delete().in('id', ids)
+    setSelectedQuotations(new Set())
     fetchData()
   }
 
   const updateStatus = async (id: string, status: string) => {
     await supabase.from('bettroi_quotations').update({ status }).eq('id', id)
     fetchData()
+  }
+
+  const toggleQuotationSelection = (quotationId: string) => {
+    const newSelected = new Set(selectedQuotations)
+    if (newSelected.has(quotationId)) {
+      newSelected.delete(quotationId)
+    } else {
+      newSelected.add(quotationId)
+    }
+    setSelectedQuotations(newSelected)
+  }
+
+  const selectAllQuotations = () => {
+    if (selectedQuotations.size === filteredQuotations.length) {
+      setSelectedQuotations(new Set())
+    } else {
+      setSelectedQuotations(new Set(filteredQuotations.map(q => q.id)))
+    }
   }
 
   const formatCurrency = (n: number) => n ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n) : '—'
@@ -63,11 +151,39 @@ export const Quotations = () => {
     revised: { bg: 'bg-amber-100 text-amber-700', text: 'Revised', icon: Edit3 },
   }
 
-  const filtered = filter === 'all' ? quotations : quotations.filter(q => q.status === filter)
-
   const totalQuoted = quotations.reduce((sum, q) => sum + (q.amount || 0), 0)
   const totalAccepted = quotations.filter(q => q.status === 'accepted').reduce((sum, q) => sum + (q.amount || 0), 0)
   const totalPending = quotations.filter(q => q.status === 'sent').reduce((sum, q) => sum + (q.amount || 0), 0)
+
+  const quotationFields: FieldDefinition[] = [
+    { 
+      name: 'project_id', 
+      label: 'Project', 
+      type: 'select',
+      options: [
+        { value: '', label: 'No project linked' },
+        ...projects.map(p => ({ value: p.id, label: p.name }))
+      ]
+    },
+    { name: 'quote_date', label: 'Quote Date', type: 'date', required: true },
+    { name: 'amount', label: 'Amount (₹)', type: 'number', required: true, placeholder: '150000' },
+    { name: 'description', label: 'Description', type: 'text', required: true, placeholder: 'e.g. 4C Web Portal - Add-on features' },
+    { 
+      name: 'status', 
+      label: 'Status', 
+      type: 'select', 
+      required: true,
+      options: [
+        { value: 'draft', label: 'Draft' },
+        { value: 'sent', label: 'Sent' },
+        { value: 'accepted', label: 'Accepted' },
+        { value: 'rejected', label: 'Rejected' },
+        { value: 'revised', label: 'Revised' }
+      ]
+    },
+    { name: 'quote_url', label: 'Quotation Document URL', type: 'url', placeholder: 'https://drive.google.com/...' },
+    { name: 'notes', label: 'Notes', type: 'textarea', placeholder: 'Any additional notes...', rows: 3 }
+  ]
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
 
@@ -79,9 +195,23 @@ export const Quotations = () => {
           <h1 className="text-2xl font-bold text-slate-100">Quotations</h1>
           <p className="text-slate-400 text-sm mt-1">Track all quotes sent to Bettroi</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium transition-colors">
-          <Plus className="w-4 h-4" /> New Quote
-        </button>
+        <div className="flex gap-3">
+          {selectedQuotations.size > 0 && (
+            <button
+              onClick={() => setShowBulkDelete(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-medium transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete ({selectedQuotations.size})
+            </button>
+          )}
+          <button 
+            onClick={() => setShowAddForm(true)} 
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium transition-colors"
+          >
+            <Plus className="w-4 h-4" /> New Quote
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -103,108 +233,208 @@ export const Quotations = () => {
         </div>
       </div>
 
-      {/* Add Quote Form */}
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-slate-800/80 border border-slate-700 rounded-xl p-6 space-y-4">
-          <h3 className="text-lg font-semibold text-white">Add New Quotation</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-slate-300 mb-1">Project</label>
-              <select value={form.project_id} onChange={e => setForm({ ...form, project_id: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                <option value="">Select project...</option>
-                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm text-slate-300 mb-1">Quote Date *</label>
-              <input type="date" required value={form.quote_date} onChange={e => setForm({ ...form, quote_date: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500" />
-            </div>
-            <div>
-              <label className="block text-sm text-slate-300 mb-1">Amount (₹) *</label>
-              <input type="number" required value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })}
-                placeholder="150000" className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500" />
-            </div>
-            <div>
-              <label className="block text-sm text-slate-300 mb-1">Status</label>
-              <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500">
-                <option value="draft">Draft</option>
-                <option value="sent">Sent</option>
-                <option value="accepted">Accepted</option>
-                <option value="rejected">Rejected</option>
-                <option value="revised">Revised</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">Description</label>
-            <input type="text" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-              placeholder="e.g. 4C Web Portal - Add-on features" className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500" />
-          </div>
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">Notes</label>
-            <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2}
-              placeholder="Any details..." className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500 resize-none" />
-          </div>
-          <div className="flex gap-3">
-            <button type="submit" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors">Save Quotation</button>
-            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm transition-colors">Cancel</button>
-          </div>
-        </form>
-      )}
-
-      {/* Filter Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {['all', 'sent', 'accepted', 'rejected', 'revised', 'draft'].map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === f ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>
-            {f === 'all' ? `All (${quotations.length})` : `${f.charAt(0).toUpperCase() + f.slice(1)} (${quotations.filter(q => q.status === f).length})`}
-          </button>
-        ))}
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search quotations or projects..."
+            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          />
+        </div>
+        
+        <div className="flex gap-3">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="all">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="accepted">Accepted</option>
+            <option value="rejected">Rejected</option>
+            <option value="revised">Revised</option>
+          </select>
+          
+          <select
+            value={`${sortBy}-${sortOrder}`}
+            onChange={(e) => {
+              const [field, order] = e.target.value.split('-')
+              setSortBy(field as any)
+              setSortOrder(order as 'asc' | 'desc')
+            }}
+            className="px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="amount-desc">Amount High-Low</option>
+            <option value="amount-asc">Amount Low-High</option>
+            <option value="status-asc">Status A-Z</option>
+          </select>
+        </div>
       </div>
 
-      {/* Quotations List */}
-      <div className="space-y-3">
-        {filtered.length === 0 ? (
-          <div className="text-center py-12 bg-slate-800/50 border border-slate-700 rounded-xl">
-            <FileText className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-400">No quotations found</p>
-          </div>
-        ) : filtered.map(q => {
-          const sc = statusConfig[q.status] || statusConfig.draft
-          const Icon = sc.icon
-          return (
-            <div key={q.id} className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <h3 className="text-white font-semibold">{q.bettroi_projects?.name || 'Unlinked'}</h3>
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${sc.bg}`}>
-                      <Icon className="w-3 h-3" /> {sc.text}
-                    </span>
-                  </div>
-                  {q.description && <p className="text-slate-300 text-sm mt-1">{q.description}</p>}
-                  {q.notes && <p className="text-slate-500 text-xs mt-1">{q.notes}</p>}
-                  <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
-                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Quoted on {formatDate(q.quote_date)}</span>
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-xl font-bold text-white">{formatCurrency(q.amount)}</p>
-                  {q.status === 'sent' && (
-                    <div className="flex gap-1 mt-2">
-                      <button onClick={() => updateStatus(q.id, 'accepted')} className="px-2 py-1 bg-emerald-600/20 text-emerald-400 text-xs rounded hover:bg-emerald-600/30 transition-colors">✓ Accept</button>
-                      <button onClick={() => updateStatus(q.id, 'rejected')} className="px-2 py-1 bg-red-600/20 text-red-400 text-xs rounded hover:bg-red-600/30 transition-colors">✗ Reject</button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )
-        })}
+      {/* Quotations Table */}
+      <div className="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-slate-900/50">
+              <tr>
+                <th className="px-4 py-3 text-left">
+                  <button
+                    onClick={selectAllQuotations}
+                    className="text-slate-400 hover:text-white transition-colors"
+                  >
+                    {selectedQuotations.size === filteredQuotations.length && filteredQuotations.length > 0 ? 
+                      <CheckSquare className="w-4 h-4" /> : 
+                      <Square className="w-4 h-4" />
+                    }
+                  </button>
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Quotation</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Amount</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700">
+              {filteredQuotations.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-12">
+                    <FileText className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+                    <p className="text-slate-400">
+                      {searchTerm || statusFilter !== 'all' ? 'No quotations match your filters' : 'No quotations found'}
+                    </p>
+                  </td>
+                </tr>
+              ) : filteredQuotations.map(q => {
+                const sc = statusConfig[q.status] || statusConfig.draft
+                const Icon = sc.icon
+                return (
+                  <tr key={q.id} className="hover:bg-slate-700/50 transition-colors">
+                    <td className="px-4 py-4">
+                      <button
+                        onClick={() => toggleQuotationSelection(q.id)}
+                        className="text-slate-400 hover:text-white transition-colors"
+                      >
+                        {selectedQuotations.has(q.id) ? 
+                          <CheckSquare className="w-4 h-4 text-emerald-400" /> : 
+                          <Square className="w-4 h-4" />
+                        }
+                      </button>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-white font-semibold text-sm">{q.bettroi_projects?.name || 'Unlinked'}</h3>
+                          {q.quote_url && (
+                            <a
+                              href={q.quote_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                              title="View Document"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
+                        {q.description && <p className="text-slate-300 text-sm mt-1">{q.description}</p>}
+                        {q.notes && <p className="text-slate-500 text-xs mt-1">{q.notes}</p>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${sc.bg}`}>
+                        <Icon className="w-3 h-3" /> {sc.text}
+                      </span>
+                      {q.status === 'sent' && (
+                        <div className="flex gap-1 mt-2">
+                          <button onClick={() => updateStatus(q.id, 'accepted')} className="px-2 py-1 bg-emerald-600/20 text-emerald-400 text-xs rounded hover:bg-emerald-600/30 transition-colors">✓ Accept</button>
+                          <button onClick={() => updateStatus(q.id, 'rejected')} className="px-2 py-1 bg-red-600/20 text-red-400 text-xs rounded hover:bg-red-600/30 transition-colors">✗ Reject</button>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-4">
+                      <p className="text-lg font-bold text-white">{formatCurrency(q.amount)}</p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="text-sm text-slate-400">{formatDate(q.quote_date)}</span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setEditingQuotation(q)}
+                          className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => duplicateQuotation(q)}
+                          className="text-blue-400 hover:text-blue-300 transition-colors"
+                          title="Duplicate"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeletingQuotation(q)}
+                          className="text-red-400 hover:text-red-300 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      {/* Add/Edit Quotation Modal */}
+      <EditModal
+        isOpen={showAddForm || !!editingQuotation}
+        onClose={() => {
+          setShowAddForm(false)
+          setEditingQuotation(null)
+        }}
+        title={editingQuotation ? 'Edit Quotation' : 'Add New Quotation'}
+        fields={quotationFields}
+        initialData={editingQuotation || { 
+          quote_date: new Date().toISOString().split('T')[0], 
+          status: 'sent' 
+        }}
+        onSave={editingQuotation ? updateQuotation : createQuotation}
+      />
+
+      {/* Delete Quotation Confirmation */}
+      <ConfirmDialog
+        isOpen={!!deletingQuotation}
+        onClose={() => setDeletingQuotation(null)}
+        onConfirm={deleteQuotation}
+        title="Delete Quotation"
+        message={`Are you sure you want to delete this quotation for "${deletingQuotation?.description}"? This action cannot be undone.`}
+        confirmText="Delete Quotation"
+        type="danger"
+      />
+
+      {/* Bulk Delete Confirmation */}
+      <ConfirmDialog
+        isOpen={showBulkDelete}
+        onClose={() => setShowBulkDelete(false)}
+        onConfirm={bulkDelete}
+        title="Delete Quotations"
+        message={`Are you sure you want to delete ${selectedQuotations.size} quotations? This action cannot be undone.`}
+        confirmText="Delete All"
+        type="danger"
+      />
     </div>
   )
 }
