@@ -6,7 +6,8 @@ import {
   History, 
   BarChart3,
   FileText,
-  Calculator 
+  Calculator,
+  Clock
 } from 'lucide-react'
 
 interface LayoutProps {
@@ -20,6 +21,7 @@ export const Layout = ({ children }: LayoutProps) => {
     { to: '/add-transaction', icon: Plus, label: 'Add Transaction' },
     { to: '/quotations', icon: FileText, label: 'Quotations' },
     { to: '/transactions', icon: History, label: 'History' },
+    { to: '/pending', icon: Clock, label: 'Pending' },
     { to: '/reports', icon: BarChart3, label: 'Reports' },
   ]
 

@@ -7,6 +7,7 @@ import { AddTransaction } from './pages/AddTransaction'
 import { TransactionHistory } from './pages/TransactionHistory'
 import { Reports } from './pages/Reports'
 import { Quotations } from './pages/Quotations'
+import { PendingPayments } from './pages/PendingPayments'
 import { Setup } from './pages/Setup'
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
                 <Route path="/add-transaction" element={<AddTransaction />} />
                 <Route path="/transactions" element={<TransactionHistory />} />
                 <Route path="/quotations" element={<Quotations />} />
+                <Route path="/pending" element={<PendingPayments />} />
                 <Route path="/reports" element={<Reports />} />
               </Routes>
             </Layout>
