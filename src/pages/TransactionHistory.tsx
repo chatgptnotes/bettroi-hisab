@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import { Filter, Search, Edit2, Trash2, Plus, CheckSquare, Square, ExternalLink } from 'lucide-react'
-import { supabase, type BettroiTransaction, type BettroiProject } from '../lib/supabase'
+import { useEffect, useState, useRef } from 'react'
+import { Filter, Search, Edit2, Trash2, Plus, CheckSquare, Square, ExternalLink, Upload, Download, Paperclip, Link, FileText, X, Eye } from 'lucide-react'
+import { supabase, type BettroiTransaction, type BettroiProject, type TransactionDocument } from '../lib/supabase'
 import { EditModal, type FieldDefinition } from '../components/EditModal'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 
@@ -27,6 +27,10 @@ export const TransactionHistory = () => {
   const [editingTransaction, setEditingTransaction] = useState<TransactionWithProject | null>(null)
   const [deletingTransaction, setDeletingTransaction] = useState<TransactionWithProject | null>(null)
   const [showBulkDelete, setShowBulkDelete] = useState(false)
+  const [docModalTxId, setDocModalTxId] = useState<string | null>(null)
+  const [uploadingDoc, setUploadingDoc] = useState(false)
+  const [linkInput, setLinkInput] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchData()
@@ -145,6 +149,82 @@ export const TransactionHistory = () => {
     await supabase.from('bettroi_transactions').delete().in('id', ids)
     setSelectedTransactions(new Set())
     fetchTransactions()
+  }
+
+  // Document management
+  const getTransactionDocs = (txId: string): TransactionDocument[] => {
+    const tx = transactions.find(t => t.id === txId)
+    return (tx?.documents as TransactionDocument[]) || []
+  }
+
+  const uploadDocument = async (txId: string, file: File) => {
+    setUploadingDoc(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${txId}/${Date.now()}-${file.name}`
+      
+      const { error: uploadError } = await supabase.storage
+        .from('receipts')
+        .upload(path, file, { contentType: file.type })
+      
+      if (uploadError) {
+        console.error('Upload error:', uploadError)
+        alert('Upload failed: ' + uploadError.message)
+        setUploadingDoc(false)
+        return
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('receipts')
+        .getPublicUrl(path)
+
+      const newDoc: TransactionDocument = {
+        name: file.name,
+        url: urlData.publicUrl,
+        type: 'upload',
+        mime: file.type,
+        uploadedAt: new Date().toISOString()
+      }
+
+      const docs = [...getTransactionDocs(txId), newDoc]
+      await supabase.from('bettroi_transactions').update({ documents: docs }).eq('id', txId)
+      await fetchTransactions()
+    } catch (err) {
+      console.error('Upload error:', err)
+      alert('Upload failed')
+    }
+    setUploadingDoc(false)
+  }
+
+  const addDocumentLink = async (txId: string, url: string) => {
+    if (!url.trim()) return
+    const newDoc: TransactionDocument = {
+      name: url.split('/').pop() || 'Link',
+      url: url.trim(),
+      type: 'link',
+      uploadedAt: new Date().toISOString()
+    }
+    const docs = [...getTransactionDocs(txId), newDoc]
+    await supabase.from('bettroi_transactions').update({ documents: docs }).eq('id', txId)
+    setLinkInput('')
+    await fetchTransactions()
+  }
+
+  const removeDocument = async (txId: string, docIndex: number) => {
+    const docs = getTransactionDocs(txId)
+    const doc = docs[docIndex]
+    
+    // Delete from storage if it was an upload
+    if (doc.type === 'upload') {
+      const path = doc.url.split('/receipts/')[1]
+      if (path) {
+        await supabase.storage.from('receipts').remove([decodeURIComponent(path)])
+      }
+    }
+    
+    const newDocs = docs.filter((_, i) => i !== docIndex)
+    await supabase.from('bettroi_transactions').update({ documents: newDocs }).eq('id', txId)
+    await fetchTransactions()
   }
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -457,6 +537,9 @@ export const TransactionHistory = () => {
                   Running Total
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Docs
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -516,7 +599,43 @@ export const TransactionHistory = () => {
                       {formatCurrency(calculateRunningTotal(index))}
                     </td>
                     <td className="px-4 py-4">
+                      {(() => {
+                        const docs = (transaction.documents as TransactionDocument[]) || []
+                        const hasAttachment = !!transaction.attachment_url
+                        const totalDocs = docs.length + (hasAttachment ? 1 : 0)
+                        return (
+                          <div className="flex items-center gap-1">
+                            {totalDocs > 0 ? (
+                              <button
+                                onClick={() => setDocModalTxId(transaction.id)}
+                                className="flex items-center gap-1 px-2 py-1 bg-emerald-900/50 border border-emerald-700 text-emerald-400 hover:bg-emerald-800/50 rounded-lg text-xs font-medium transition-colors"
+                                title={`${totalDocs} document(s)`}
+                              >
+                                <Paperclip className="w-3 h-3" />
+                                {totalDocs}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setDocModalTxId(transaction.id)}
+                                className="flex items-center gap-1 px-2 py-1 bg-slate-700 border border-slate-600 text-slate-400 hover:text-white hover:bg-slate-600 rounded-lg text-xs transition-colors"
+                                title="Add documents"
+                              >
+                                <Upload className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        )
+                      })()}
+                    </td>
+                    <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setDocModalTxId(transaction.id)}
+                          className="text-blue-400 hover:text-blue-300 transition-colors"
+                          title="Manage Documents"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => setEditingTransaction(transaction)}
                           className="text-emerald-400 hover:text-emerald-300 transition-colors"
@@ -537,7 +656,7 @@ export const TransactionHistory = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-slate-400">
+                  <td colSpan={9} className="px-6 py-8 text-center text-slate-400">
                     {searchTerm || Object.values(filters).some(f => f) ? 'No transactions match your filters' : 'No transactions found'}
                   </td>
                 </tr>
@@ -590,6 +709,139 @@ export const TransactionHistory = () => {
         confirmText="Delete All"
         type="danger"
       />
+
+      {/* Document Management Modal */}
+      {docModalTxId && (() => {
+        const tx = transactions.find(t => t.id === docModalTxId)
+        if (!tx) return null
+        const docs = (tx.documents as TransactionDocument[]) || []
+        const hasLegacyAttachment = !!tx.attachment_url && !docs.some(d => d.url === tx.attachment_url)
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setDocModalTxId(null)}>
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b border-slate-700">
+                <div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Paperclip className="w-5 h-5 text-emerald-400" />
+                    Documents
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {tx.bettroi_projects?.name} — {formatCurrency(Number(tx.amount))} — {new Date(tx.date).toLocaleDateString('en-IN')}
+                  </p>
+                </div>
+                <button onClick={() => setDocModalTxId(null)} className="text-slate-400 hover:text-white p-1"><X className="w-5 h-5" /></button>
+              </div>
+
+              {/* Document List */}
+              <div className="p-5 space-y-3 max-h-80 overflow-y-auto">
+                {/* Legacy attachment_url */}
+                {hasLegacyAttachment && (
+                  <div className="flex items-center gap-3 p-3 bg-slate-700/50 border border-slate-600 rounded-xl">
+                    <Link className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white font-medium truncate">Legacy Attachment</p>
+                      <p className="text-xs text-slate-400 truncate">{tx.attachment_url}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <a href={tx.attachment_url!} target="_blank" rel="noopener noreferrer" className="p-1.5 text-emerald-400 hover:bg-emerald-900/50 rounded-lg transition-colors" title="Open"><Eye className="w-4 h-4" /></a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Documents */}
+                {docs.map((doc, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 bg-slate-700/50 border border-slate-600 rounded-xl">
+                    {doc.type === 'upload' ? (
+                      <FileText className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                    ) : (
+                      <Link className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white font-medium truncate">{doc.name}</p>
+                      <p className="text-xs text-slate-400">
+                        {doc.type === 'upload' ? '📎 Uploaded' : '🔗 Link'} • {new Date(doc.uploadedAt).toLocaleDateString('en-IN')}
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-emerald-400 hover:bg-emerald-900/50 rounded-lg transition-colors" title="View"><Eye className="w-4 h-4" /></a>
+                      <a href={doc.url} download={doc.name} className="p-1.5 text-blue-400 hover:bg-blue-900/50 rounded-lg transition-colors" title="Download"><Download className="w-4 h-4" /></a>
+                      <button onClick={() => removeDocument(docModalTxId!, i)} className="p-1.5 text-red-400 hover:bg-red-900/50 rounded-lg transition-colors" title="Remove"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  </div>
+                ))}
+
+                {docs.length === 0 && !hasLegacyAttachment && (
+                  <div className="text-center py-6 text-slate-500">
+                    <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No documents attached yet</p>
+                    <p className="text-xs mt-1">Upload a file or paste a link below</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload / Link Actions */}
+              <div className="p-5 border-t border-slate-700 space-y-3">
+                {/* File Upload */}
+                <div className="flex gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.csv"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file && docModalTxId) {
+                        uploadDocument(docModalTxId, file)
+                      }
+                      e.target.value = ''
+                    }}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingDoc}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {uploadingDoc ? 'Uploading...' : 'Upload File'}
+                  </button>
+                </div>
+
+                {/* Link Paste */}
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={linkInput}
+                    onChange={(e) => setLinkInput(e.target.value)}
+                    placeholder="Paste document URL (Google Drive, Dropbox, etc.)"
+                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-xl text-white text-sm placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && linkInput.trim()) {
+                        addDocumentLink(docModalTxId!, linkInput)
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => addDocumentLink(docModalTxId!, linkInput)}
+                    disabled={!linkInput.trim()}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+                  >
+                    <Link className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <p className="text-[11px] text-slate-500 text-center">
+                  Supports PDF, images, Excel, Word • Max 50MB per file
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Hidden file input for quick uploads from table */}
+      <input id="quick-upload" type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.csv" />
     </div>
   )
 }

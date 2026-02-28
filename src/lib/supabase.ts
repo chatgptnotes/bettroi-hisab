@@ -17,6 +17,14 @@ export interface BettroiProject {
   created_at: string
 }
 
+export interface TransactionDocument {
+  name: string
+  url: string
+  type: 'upload' | 'link'
+  mime?: string
+  uploadedAt: string
+}
+
 export interface BettroiTransaction {
   id: string
   project_id: string
@@ -26,6 +34,7 @@ export interface BettroiTransaction {
   mode?: 'cash' | 'bank' | 'upi' | 'by_hand' | 'cheque' | 'other'
   notes?: string
   attachment_url?: string
+  documents?: TransactionDocument[]
   created_at: string
 }
 
