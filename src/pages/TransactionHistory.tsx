@@ -607,19 +607,18 @@ export const TransactionHistory = () => {
                             {totalDocs > 0 ? (
                               <button
                                 onClick={() => setDocModalTxId(transaction.id)}
-                                className="flex items-center gap-1 px-2 py-1 bg-emerald-900/50 border border-emerald-700 text-emerald-400 hover:bg-emerald-800/50 rounded-lg text-xs font-medium transition-colors"
-                                title={`${totalDocs} document(s)`}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-emerald-900/50 border border-emerald-600 text-emerald-300 hover:bg-emerald-800/50 rounded-lg text-xs font-semibold transition-colors"
                               >
-                                <Paperclip className="w-3 h-3" />
-                                {totalDocs}
+                                <Paperclip className="w-3.5 h-3.5" />
+                                {totalDocs} Doc{totalDocs > 1 ? 's' : ''}
                               </button>
                             ) : (
                               <button
                                 onClick={() => setDocModalTxId(transaction.id)}
-                                className="flex items-center gap-1 px-2 py-1 bg-slate-700 border border-slate-600 text-slate-400 hover:text-white hover:bg-slate-600 rounded-lg text-xs transition-colors"
-                                title="Add documents"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-blue-900/40 border border-blue-600/50 text-blue-300 hover:bg-blue-800/50 hover:border-blue-500 rounded-lg text-xs font-semibold transition-colors"
                               >
-                                <Upload className="w-3 h-3" />
+                                <Upload className="w-3.5 h-3.5" />
+                                Upload
                               </button>
                             )}
                           </div>
@@ -627,24 +626,17 @@ export const TransactionHistory = () => {
                       })()}
                     </td>
                     <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setDocModalTxId(transaction.id)}
-                          className="text-blue-400 hover:text-blue-300 transition-colors"
-                          title="Manage Documents"
-                        >
-                          <FileText className="w-4 h-4" />
-                        </button>
+                      <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => setEditingTransaction(transaction)}
-                          className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                          className="p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/30 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeletingTransaction(transaction)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
+                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded-lg transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
