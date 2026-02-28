@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Clock, AlertTriangle, Send, CheckCircle, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
+import { Clock, Send, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { supabase, type BettroiProject, type BettroiTransaction } from '../lib/supabase'
 
 interface PendingItem {
@@ -86,14 +86,6 @@ export const PendingPayments = () => {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
-  }
-
-  const getUrgencyColor = (days: number | null) => {
-    if (!days) return 'text-slate-400'
-    if (days > 60) return 'text-red-400'
-    if (days > 30) return 'text-amber-400'
-    if (days > 14) return 'text-yellow-400'
-    return 'text-emerald-400'
   }
 
   const getUrgencyBg = (days: number | null) => {

@@ -160,7 +160,6 @@ export const TransactionHistory = () => {
   const uploadDocument = async (txId: string, file: File) => {
     setUploadingDoc(true)
     try {
-      const ext = file.name.split('.').pop()
       const path = `${txId}/${Date.now()}-${file.name}`
       
       const { error: uploadError } = await supabase.storage
