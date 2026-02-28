@@ -30,25 +30,32 @@ export const Dashboard = () => {
         .from('bettroi_projects')
         .select('*')
 
-      // Fetch transactions with project names
-      const { data: transactions } = await supabase
+      // Fetch ALL transactions for stats
+      const { data: allTransactions } = await supabase
+        .from('bettroi_transactions')
+        .select('type, amount')
+
+      // Fetch recent 10 for display
+      const { data: recentTxns } = await supabase
         .from('bettroi_transactions')
         .select(`
           *,
           bettroi_projects(name)
         `)
-        .order('created_at', { ascending: false })
-        .limit(5)
+        .order('date', { ascending: false })
+        .limit(10)
 
-      // Calculate stats
+      // Total Billed = sum of all project total_values (the contract/project value)
       let totalBilled = 0
+      if (projects) {
+        totalBilled = projects.reduce((sum, p) => sum + (Number(p.total_value) || 0), 0)
+      }
+
+      // Total Received = sum of all payment transactions
       let totalReceived = 0
-      
-      if (transactions) {
-        transactions.forEach(tx => {
-          if (tx.type === 'bill_sent' || tx.type === 'invoice') {
-            totalBilled += Number(tx.amount)
-          } else if (tx.type === 'payment_received' || tx.type === 'advance' || tx.type === 'by_hand') {
+      if (allTransactions) {
+        allTransactions.forEach(tx => {
+          if (tx.type === 'payment_received' || tx.type === 'advance' || tx.type === 'by_hand') {
             totalReceived += Number(tx.amount)
           }
         })
@@ -61,7 +68,7 @@ export const Dashboard = () => {
         projectsCount: projects?.length || 0,
       })
 
-      setRecentTransactions(transactions || [])
+      setRecentTransactions(recentTxns || [])
       setLoading(false)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
