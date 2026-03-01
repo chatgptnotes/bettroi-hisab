@@ -87,7 +87,7 @@ export const Projects = () => {
 
     filtered.sort((a, b) => {
       let aVal: any, bVal: any
-      
+
       if (sortBy === 'value') {
         aVal = a.total_value
         bVal = b.total_value
@@ -138,13 +138,13 @@ export const Projects = () => {
 
   const deleteProject = async () => {
     if (!deletingProject) return
-    
+
     // Check if project has transactions
     const { data: transactions } = await supabase
       .from('bettroi_transactions')
       .select('id')
       .eq('project_id', deletingProject.id)
-    
+
     if (transactions && transactions.length > 0) {
       // Delete transactions first
       await supabase.from('bettroi_transactions').delete().eq('project_id', deletingProject.id)
@@ -153,22 +153,22 @@ export const Projects = () => {
       // Delete action items
       await supabase.from('bettroi_action_items').delete().eq('project_id', deletingProject.id)
     }
-    
+
     await supabase.from('bettroi_projects').delete().eq('id', deletingProject.id)
     fetchProjects()
   }
 
   const bulkDelete = async () => {
     const ids = Array.from(selectedProjects)
-    
+
     // Delete related data first
     await supabase.from('bettroi_transactions').delete().in('project_id', ids)
     await supabase.from('bettroi_milestones').delete().in('project_id', ids)
     await supabase.from('bettroi_action_items').delete().in('project_id', ids)
-    
+
     // Delete projects
     await supabase.from('bettroi_projects').delete().in('id', ids)
-    
+
     setSelectedProjects(new Set())
     fetchProjects()
   }
@@ -216,15 +216,15 @@ export const Projects = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-900 text-green-300'
+        return 'bg-green-100 text-green-700'
       case 'completed':
-        return 'bg-blue-900 text-blue-300'
+        return 'bg-blue-100 text-blue-700'
       case 'pending':
-        return 'bg-yellow-900 text-yellow-300'
+        return 'bg-yellow-100 text-yellow-700'
       case 'in_process':
-        return 'bg-orange-900 text-orange-300'
+        return 'bg-orange-100 text-orange-700'
       default:
-        return 'bg-slate-900 text-slate-300'
+        return 'bg-gray-100 text-gray-700'
     }
   }
 
@@ -232,10 +232,10 @@ export const Projects = () => {
     { name: 'name', label: 'Project Name', type: 'text', required: true, placeholder: 'Enter project name' },
     { name: 'client_name', label: 'Client Name', type: 'text', placeholder: 'Enter client name' },
     { name: 'total_value', label: 'Total Value (₹)', type: 'number', required: true, placeholder: '150000' },
-    { 
-      name: 'status', 
-      label: 'Status', 
-      type: 'select', 
+    {
+      name: 'status',
+      label: 'Status',
+      type: 'select',
       required: true,
       options: [
         { value: 'pending', label: 'Pending' },
@@ -261,8 +261,8 @@ export const Projects = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Projects</h1>
-          <p className="text-slate-400">Manage Bettroi project accounts</p>
+          <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
+          <p className="text-gray-500">Manage Bettroi project accounts</p>
         </div>
         <div className="flex gap-3">
           {selectedProjects.size > 0 && (
@@ -287,21 +287,21 @@ export const Projects = () => {
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search projects or clients..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />
         </div>
-        
+
         <div className="flex gap-3">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+            className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -309,7 +309,7 @@ export const Projects = () => {
             <option value="in_process">In Process</option>
             <option value="completed">Completed</option>
           </select>
-          
+
           <select
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
@@ -317,7 +317,7 @@ export const Projects = () => {
               setSortBy(field as any)
               setSortOrder(order as 'asc' | 'desc')
             }}
-            className="px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+            className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
           >
             <option value="name-asc">Name A-Z</option>
             <option value="name-desc">Name Z-A</option>
@@ -331,79 +331,79 @@ export const Projects = () => {
       </div>
 
       {/* Projects Table */}
-      <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-700">
-            <thead className="bg-slate-900">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left">
                   <button
                     onClick={selectAllProjects}
-                    className="text-slate-400 hover:text-white transition-colors"
+                    className="text-gray-400 hover:text-gray-700 transition-colors"
                   >
-                    {selectedProjects.size === filteredProjects.length && filteredProjects.length > 0 ? 
-                      <CheckSquare className="w-4 h-4" /> : 
+                    {selectedProjects.size === filteredProjects.length && filteredProjects.length > 0 ?
+                      <CheckSquare className="w-4 h-4" /> :
                       <Square className="w-4 h-4" />
                     }
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Project
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Total Value
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Received
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Balance
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-slate-800 divide-y divide-slate-700">
+            <tbody className="bg-white divide-y divide-gray-200">
               {filteredProjects.length > 0 ? (
                 filteredProjects.map((project) => (
-                  <tr key={project.id} className="hover:bg-slate-700">
+                  <tr key={project.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <button
                         onClick={() => toggleProjectSelection(project.id)}
-                        className="text-slate-400 hover:text-white transition-colors"
+                        className="text-gray-400 hover:text-gray-700 transition-colors"
                       >
-                        {selectedProjects.has(project.id) ? 
-                          <CheckSquare className="w-4 h-4 text-emerald-400" /> : 
+                        {selectedProjects.has(project.id) ?
+                          <CheckSquare className="w-4 h-4 text-emerald-500" /> :
                           <Square className="w-4 h-4" />
                         }
                       </button>
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <div className="text-sm font-medium text-white flex items-center gap-2">
+                        <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
                           {project.name}
                           {project.quote_url && (
                             <a
                               href={project.quote_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-emerald-400 hover:text-emerald-300"
+                              className="text-emerald-600 hover:text-emerald-500"
                             >
                               <ExternalLink className="w-3 h-3" />
                             </a>
                           )}
                         </div>
                         {project.client_name && (
-                          <div className="text-sm text-slate-400">
+                          <div className="text-sm text-gray-500">
                             {project.client_name}
                           </div>
                         )}
                         {project.notes && (
-                          <div className="text-xs text-slate-500 mt-1 truncate max-w-[250px]">💬 {project.notes}</div>
+                          <div className="text-xs text-gray-400 mt-1 truncate max-w-[250px]">{project.notes}</div>
                         )}
                       </div>
                     </td>
@@ -412,14 +412,14 @@ export const Projects = () => {
                         {project.status.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-white">
+                    <td className="px-6 py-4 text-sm text-gray-900">
                       {formatCurrency(Number(project.total_value))}
                     </td>
-                    <td className="px-6 py-4 text-sm text-green-400">
+                    <td className="px-6 py-4 text-sm text-green-600">
                       {formatCurrency(project.totalReceived)}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <span className={project.balance > 0 ? 'text-yellow-400' : 'text-green-400'}>
+                      <span className={project.balance > 0 ? 'text-yellow-600' : 'text-green-600'}>
                         {formatCurrency(project.balance)}
                       </span>
                     </td>
@@ -427,28 +427,28 @@ export const Projects = () => {
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => openNotes(project)}
-                          className={`p-1.5 rounded-lg transition-colors ${project.notes ? 'text-amber-400 hover:bg-amber-900/30' : 'text-slate-400 hover:text-amber-300 hover:bg-slate-700'}`}
+                          className={`p-1.5 rounded-lg transition-colors ${project.notes ? 'text-amber-500 hover:bg-amber-50' : 'text-gray-400 hover:text-amber-500 hover:bg-gray-100'}`}
                           title="Notes & Agreements"
                         >
                           <MessageSquare className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setEditingProject(project)}
-                          className="p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/30 rounded-lg transition-colors"
+                          className="p-1.5 text-emerald-600 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeletingProject(project)}
-                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded-lg transition-colors"
+                          className="p-1.5 text-red-600 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                         <Link
                           to={`/project/${project.id}`}
-                          className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 rounded-lg transition-colors"
+                          className="p-1.5 text-blue-600 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Details"
                         >
                           <ExternalLink className="w-4 h-4" />
@@ -459,7 +459,7 @@ export const Projects = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-slate-400">
+                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
                     {searchTerm || statusFilter !== 'all' ? 'No projects match your filters' : 'No projects found'}
                   </td>
                 </tr>
@@ -506,17 +506,17 @@ export const Projects = () => {
 
       {/* Notes & Agreements Modal */}
       {notesProject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setNotesProject(null)}>
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-5 border-b border-slate-700">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setNotesProject(null)}>
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg shadow-2xl" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-gray-200">
               <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-amber-400" />
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-amber-500" />
                   Notes & Agreements
                 </h3>
-                <p className="text-sm text-slate-400 mt-0.5">{notesProject.name} — {notesProject.client_name || 'Bettroi'}</p>
+                <p className="text-sm text-gray-500 mt-0.5">{notesProject.name} — {notesProject.client_name || 'Bettroi'}</p>
               </div>
-              <button onClick={() => setNotesProject(null)} className="text-slate-400 hover:text-white p-1">
+              <button onClick={() => setNotesProject(null)} className="text-gray-400 hover:text-gray-600 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -525,16 +525,16 @@ export const Projects = () => {
                 value={notesDraft}
                 onChange={(e) => setNotesDraft(e.target.value)}
                 placeholder={"Record agreements with BT, Harita, or Bettroi here...\n\nExamples:\n• Payment terms: 50% advance, 50% on delivery\n• Margin split: 50% Bettroi\n• Scope: Phase 1 only, Phase 2 TBD\n• Deadline: March 15, 2026"}
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white text-sm placeholder-slate-500 focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-y"
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-y"
                 rows={8}
                 style={{ minHeight: '150px' }}
               />
               {notesDraft !== (notesProject.notes || '') && (
-                <p className="text-xs text-amber-400 mt-2">● Unsaved changes</p>
+                <p className="text-xs text-amber-600 mt-2">Unsaved changes</p>
               )}
             </div>
             <div className="flex justify-end gap-3 p-5 pt-0">
-              <button onClick={() => setNotesProject(null)} className="px-4 py-2 text-slate-400 hover:text-white text-sm rounded-xl transition-colors">
+              <button onClick={() => setNotesProject(null)} className="px-4 py-2 text-gray-500 hover:text-gray-700 text-sm rounded-xl transition-colors">
                 Cancel
               </button>
               <button

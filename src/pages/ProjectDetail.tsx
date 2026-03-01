@@ -236,15 +236,15 @@ export const ProjectDetail = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-900 text-green-300'
+        return 'bg-green-100 text-green-700'
       case 'completed':
-        return 'bg-blue-900 text-blue-300'
+        return 'bg-blue-100 text-blue-700'
       case 'pending':
-        return 'bg-yellow-900 text-yellow-300'
+        return 'bg-yellow-100 text-yellow-700'
       case 'in_process':
-        return 'bg-orange-900 text-orange-300'
+        return 'bg-orange-100 text-orange-700'
       default:
-        return 'bg-slate-900 text-slate-300'
+        return 'bg-gray-50 text-gray-600'
     }
   }
 
@@ -255,7 +255,7 @@ export const ProjectDetail = () => {
       case 'invoiced':
         return <Clock className="h-5 w-5 text-yellow-400" />
       default:
-        return <AlertCircle className="h-5 w-5 text-slate-400" />
+        return <AlertCircle className="h-5 w-5 text-gray-500" />
     }
   }
 
@@ -366,10 +366,10 @@ export const ProjectDetail = () => {
   if (!data.project) {
     return (
       <div className="text-center py-12">
-        <div className="text-slate-400 mb-4">Project not found</div>
+        <div className="text-gray-500 mb-4">Project not found</div>
         <Link
           to="/projects"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-900 bg-emerald-600 hover:bg-emerald-700"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Projects
@@ -384,20 +384,20 @@ export const ProjectDetail = () => {
         <div className="flex items-center space-x-4">
           <Link
             to="/projects"
-            className="inline-flex items-center px-3 py-2 border border-slate-600 shadow-sm text-sm leading-4 font-medium rounded-md text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-600 bg-white hover:bg-gray-100 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white">{data.project.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{data.project.name}</h1>
               {data.project.quote_url && (
                 <a
                   href={data.project.quote_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                  className="text-emerald-400 hover:text-emerald-700 transition-colors"
                   title="View Quotation"
                 >
                   <ExternalLink className="w-5 h-5" />
@@ -405,18 +405,18 @@ export const ProjectDetail = () => {
               )}
               <button
                 onClick={() => setEditingProject(true)}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-gray-500 hover:text-gray-700 transition-colors"
                 title="Edit Project"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-slate-400">{data.project.client_name || 'Project Details'}</p>
+            <p className="text-gray-500">{data.project.client_name || 'Project Details'}</p>
           </div>
         </div>
         <Link
           to={`/add-transaction?project_id=${data.project.id}`}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-gray-900 bg-emerald-600 hover:bg-emerald-700 transition-colors"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Transaction
@@ -425,11 +425,11 @@ export const ProjectDetail = () => {
 
       {/* Project Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-400">Total Value</p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-sm font-medium text-gray-500">Total Value</p>
+              <p className="text-2xl font-bold text-gray-900">
                 {formatCurrency(Number(data.project.total_value))}
               </p>
             </div>
@@ -439,37 +439,37 @@ export const ProjectDetail = () => {
           </div>
         </div>
 
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
           <div>
-            <p className="text-sm font-medium text-slate-400">Total Received</p>
+            <p className="text-sm font-medium text-gray-500">Total Received</p>
             <p className="text-2xl font-bold text-green-400">
               {formatCurrency(data.totalReceived)}
             </p>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               {((data.totalReceived / Number(data.project.total_value)) * 100).toFixed(1)}% of total
             </p>
           </div>
         </div>
 
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
           <div>
-            <p className="text-sm font-medium text-slate-400">Balance</p>
+            <p className="text-sm font-medium text-gray-500">Balance</p>
             <p className={`text-2xl font-bold ${data.balance > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
               {formatCurrency(data.balance)}
             </p>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               {data.balance > 0 ? 'Outstanding' : 'Fully paid'}
             </p>
           </div>
         </div>
 
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
           <div>
-            <p className="text-sm font-medium text-slate-400">Progress</p>
+            <p className="text-sm font-medium text-gray-500">Progress</p>
             <p className="text-2xl font-bold text-blue-400">
               {calculateProgress().toFixed(0)}%
             </p>
-            <div className="w-full bg-slate-700 rounded-full h-2 mt-2">
+            <div className="w-full bg-gray-100 rounded-full h-2 mt-2">
               <div
                 className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${calculateProgress()}%` }}
@@ -481,21 +481,21 @@ export const ProjectDetail = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Transactions */}
-        <div className="bg-slate-800 rounded-lg border border-slate-700">
-          <div className="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
-            <h3 className="text-lg font-medium text-white">Transactions</h3>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h3 className="text-lg font-medium text-gray-900">Transactions</h3>
             <button
               onClick={() => setShowAddTransaction(true)}
-              className="text-emerald-400 hover:text-emerald-300 transition-colors"
+              className="text-emerald-400 hover:text-emerald-700 transition-colors"
               title="Add Transaction"
             >
               <Plus className="w-4 h-4" />
             </button>
           </div>
-          <div className="divide-y divide-slate-700 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
             {data.transactions.length > 0 ? (
               data.transactions.map((transaction) => (
-                <div key={transaction.id} className="p-4 flex items-center justify-between hover:bg-slate-700/50 transition-colors">
+                <div key={transaction.id} className="p-4 flex items-center justify-between hover:bg-gray-100 transition-colors">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <p className={`text-sm font-medium ${
@@ -510,18 +510,18 @@ export const ProjectDetail = () => {
                           href={transaction.attachment_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                          className="text-emerald-400 hover:text-emerald-700 transition-colors"
                           title="View Attachment"
                         >
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       )}
                     </div>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-gray-500">
                       {new Date(transaction.date).toLocaleDateString()} • {transaction.mode?.toUpperCase() || 'N/A'}
                     </p>
                     {transaction.notes && (
-                      <p className="text-xs text-slate-500 mt-1 truncate">{transaction.notes}</p>
+                      <p className="text-xs text-gray-400 mt-1 truncate">{transaction.notes}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -537,14 +537,14 @@ export const ProjectDetail = () => {
                     <div className="flex gap-1">
                       <button
                         onClick={() => setEditingTransaction(transaction)}
-                        className="text-slate-400 hover:text-white transition-colors"
+                        className="text-gray-500 hover:text-gray-700 transition-colors"
                         title="Edit"
                       >
                         <Edit2 className="w-3 h-3" />
                       </button>
                       <button
                         onClick={() => setDeletingItem({ type: 'transaction', item: transaction })}
-                        className="text-red-400 hover:text-red-300 transition-colors"
+                        className="text-red-600 hover:text-red-700 transition-colors"
                         title="Delete"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -554,11 +554,11 @@ export const ProjectDetail = () => {
                 </div>
               ))
             ) : (
-              <div className="p-6 text-center text-slate-400">
+              <div className="p-6 text-center text-gray-500">
                 No transactions found
                 <button
                   onClick={() => setShowAddTransaction(true)}
-                  className="block mx-auto mt-2 text-emerald-400 hover:text-emerald-300 text-sm transition-colors"
+                  className="block mx-auto mt-2 text-emerald-400 hover:text-emerald-700 text-sm transition-colors"
                 >
                   Add first transaction
                 </button>
@@ -568,21 +568,21 @@ export const ProjectDetail = () => {
         </div>
 
         {/* Milestones */}
-        <div className="bg-slate-800 rounded-lg border border-slate-700">
-          <div className="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
-            <h3 className="text-lg font-medium text-white">Milestones</h3>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h3 className="text-lg font-medium text-gray-900">Milestones</h3>
             <button
               onClick={() => setShowAddMilestone(true)}
-              className="text-emerald-400 hover:text-emerald-300 transition-colors"
+              className="text-emerald-400 hover:text-emerald-700 transition-colors"
               title="Add Milestone"
             >
               <Plus className="w-4 h-4" />
             </button>
           </div>
-          <div className="divide-y divide-slate-700 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
             {data.milestones.length > 0 ? (
               data.milestones.map((milestone) => (
-                <div key={milestone.id} className="p-4 hover:bg-slate-700/50 transition-colors">
+                <div key={milestone.id} className="p-4 hover:bg-gray-100 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3 flex-1">
                       <button
@@ -593,15 +593,15 @@ export const ProjectDetail = () => {
                         {getMilestoneStatusIcon(milestone.status)}
                       </button>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{milestone.name}</p>
+                        <p className="text-sm font-medium text-gray-900 truncate">{milestone.name}</p>
                         <div className="flex items-center gap-3 mt-1">
                           {milestone.percentage && (
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-gray-500">
                               {milestone.percentage}%
                             </p>
                           )}
                           {milestone.due_date && (
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-gray-400">
                               Due: {new Date(milestone.due_date).toLocaleDateString()}
                             </p>
                           )}
@@ -611,13 +611,13 @@ export const ProjectDetail = () => {
                     <div className="flex items-center gap-2">
                       <div className="text-right">
                         {milestone.amount && (
-                          <p className="text-sm font-medium text-white">
+                          <p className="text-sm font-medium text-gray-900">
                             {formatCurrency(Number(milestone.amount))}
                           </p>
                         )}
                         <p className={`text-xs font-medium ${
                           milestone.status === 'paid' ? 'text-green-400' :
-                          milestone.status === 'invoiced' ? 'text-yellow-400' : 'text-slate-400'
+                          milestone.status === 'invoiced' ? 'text-yellow-400' : 'text-gray-500'
                         }`}>
                           {milestone.status.toUpperCase()}
                         </p>
@@ -625,14 +625,14 @@ export const ProjectDetail = () => {
                       <div className="flex gap-1">
                         <button
                           onClick={() => setEditingMilestone(milestone)}
-                          className="text-slate-400 hover:text-white transition-colors"
+                          className="text-gray-500 hover:text-gray-700 transition-colors"
                           title="Edit"
                         >
                           <Edit2 className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => setDeletingItem({ type: 'milestone', item: milestone })}
-                          className="text-red-400 hover:text-red-300 transition-colors"
+                          className="text-red-600 hover:text-red-700 transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="w-3 h-3" />
@@ -643,11 +643,11 @@ export const ProjectDetail = () => {
                 </div>
               ))
             ) : (
-              <div className="p-6 text-center text-slate-400">
+              <div className="p-6 text-center text-gray-500">
                 No milestones found
                 <button
                   onClick={() => setShowAddMilestone(true)}
-                  className="block mx-auto mt-2 text-emerald-400 hover:text-emerald-300 text-sm transition-colors"
+                  className="block mx-auto mt-2 text-emerald-400 hover:text-emerald-700 text-sm transition-colors"
                 >
                   Add first milestone
                 </button>
@@ -658,21 +658,21 @@ export const ProjectDetail = () => {
       </div>
 
       {/* Action Items */}
-      <div className="bg-slate-800 rounded-lg border border-slate-700">
-        <div className="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
-          <h3 className="text-lg font-medium text-white">Action Items</h3>
+      <div className="bg-white rounded-lg border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <h3 className="text-lg font-medium text-gray-900">Action Items</h3>
           <button
             onClick={() => setShowAddActionItem(true)}
-            className="text-emerald-400 hover:text-emerald-300 transition-colors"
+            className="text-emerald-400 hover:text-emerald-700 transition-colors"
             title="Add Action Item"
           >
             <Plus className="w-4 h-4" />
           </button>
         </div>
-        <div className="divide-y divide-slate-700">
+        <div className="divide-y divide-gray-200">
           {data.actionItems.length > 0 ? (
             data.actionItems.map((item) => (
-              <div key={item.id} className="p-4 flex items-center justify-between hover:bg-slate-700/50 transition-colors">
+              <div key={item.id} className="p-4 flex items-center justify-between hover:bg-gray-100 transition-colors">
                 <div className="flex items-center space-x-3 flex-1">
                   <button
                     onClick={() => toggleActionItemStatus(item)}
@@ -687,12 +687,12 @@ export const ProjectDetail = () => {
                   </button>
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-medium ${
-                      item.status === 'done' ? 'text-slate-400 line-through' : 'text-white'
+                      item.status === 'done' ? 'text-gray-500 line-through' : 'text-gray-900'
                     } truncate`}>
                       {item.description}
                     </p>
                     {item.due_date && (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-gray-400">
                         Due: {new Date(item.due_date).toLocaleDateString()}
                       </p>
                     )}
@@ -701,22 +701,22 @@ export const ProjectDetail = () => {
                 <div className="flex items-center gap-2">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     item.status === 'done'
-                      ? 'bg-green-900 text-green-300'
-                      : 'bg-yellow-900 text-yellow-300'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-yellow-100 text-yellow-700'
                   }`}>
                     {item.status.toUpperCase()}
                   </span>
                   <div className="flex gap-1">
                     <button
                       onClick={() => setEditingActionItem(item)}
-                      className="text-slate-400 hover:text-white transition-colors"
+                      className="text-gray-500 hover:text-gray-700 transition-colors"
                       title="Edit"
                     >
                       <Edit2 className="w-3 h-3" />
                     </button>
                     <button
                       onClick={() => setDeletingItem({ type: 'actionItem', item })}
-                      className="text-red-400 hover:text-red-300 transition-colors"
+                      className="text-red-600 hover:text-red-700 transition-colors"
                       title="Delete"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -726,11 +726,11 @@ export const ProjectDetail = () => {
               </div>
             ))
           ) : (
-            <div className="p-6 text-center text-slate-400">
+            <div className="p-6 text-center text-gray-500">
               No action items found
               <button
                 onClick={() => setShowAddActionItem(true)}
-                className="block mx-auto mt-2 text-emerald-400 hover:text-emerald-300 text-sm transition-colors"
+                className="block mx-auto mt-2 text-emerald-400 hover:text-emerald-700 text-sm transition-colors"
               >
                 Add first action item
               </button>
@@ -741,9 +741,9 @@ export const ProjectDetail = () => {
 
       {/* Project Notes */}
       {data.project.notes && (
-        <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
-          <h3 className="text-lg font-medium text-white mb-3">Notes</h3>
-          <p className="text-slate-300 whitespace-pre-wrap">{data.project.notes}</p>
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-3">Notes</h3>
+          <p className="text-gray-600 whitespace-pre-wrap">{data.project.notes}</p>
         </div>
       )}
 

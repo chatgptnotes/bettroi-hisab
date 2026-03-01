@@ -26,12 +26,12 @@ export const Setup = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-slate-800 rounded-lg border border-slate-700 p-8">
+    <div className="min-h-screen bg-gray-50 text-gray-900 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white rounded-lg border border-gray-200 p-8">
         <div className="text-center">
           <Database className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Database Setup</h1>
-          <p className="text-slate-400 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Database Setup</h1>
+          <p className="text-gray-500 mb-6">
             Initialize the Bettroi Hisab database with sample projects and transactions.
           </p>
 
@@ -39,7 +39,7 @@ export const Setup = () => {
             <button
               onClick={handleSetup}
               disabled={loading}
-              className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
+              className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-900 bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -58,7 +58,7 @@ export const Setup = () => {
               <p className="text-green-400 text-sm mb-4">{message}</p>
               <button
                 onClick={() => window.location.href = '/'}
-                className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700"
+                className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-900 bg-emerald-600 hover:bg-emerald-700"
               >
                 Go to Dashboard
               </button>
@@ -67,18 +67,18 @@ export const Setup = () => {
 
           {status === 'error' && (
             <div className="text-center">
-              <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-2" />
-              <p className="text-red-400 text-sm mb-4">{message}</p>
+              <AlertCircle className="h-8 w-8 text-red-600 mx-auto mb-2" />
+              <p className="text-red-600 text-sm mb-4">{message}</p>
               <button
                 onClick={handleSetup}
-                className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700"
+                className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-900 bg-emerald-600 hover:bg-emerald-700"
               >
                 Try Again
               </button>
             </div>
           )}
 
-          <div className="mt-6 text-xs text-slate-500 text-left">
+          <div className="mt-6 text-xs text-gray-400 text-left">
             <p className="font-medium mb-2">This will create:</p>
             <ul className="space-y-1 pl-4">
               <li>• Linkist project (₹2,40,000)</li>

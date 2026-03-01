@@ -54,7 +54,7 @@ export const EditModal = ({
 
   const renderField = (field: FieldDefinition) => {
     const value = formData[field.name] || ''
-    
+
     switch (field.type) {
       case 'textarea':
         return (
@@ -63,17 +63,17 @@ export const EditModal = ({
             onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
             rows={field.rows || 3}
             placeholder={field.placeholder}
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
             required={field.required}
           />
         )
-      
+
       case 'select':
         return (
           <select
             value={value}
             onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             required={field.required}
           >
             {!field.required && <option value="">Select {field.label.toLowerCase()}...</option>}
@@ -84,7 +84,7 @@ export const EditModal = ({
             ))}
           </select>
         )
-      
+
       default:
         return (
           <input
@@ -92,7 +92,7 @@ export const EditModal = ({
             value={value}
             onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
             placeholder={field.placeholder}
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             required={field.required}
           />
         )
@@ -105,30 +105,30 @@ export const EditModal = ({
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
-        <div className="relative bg-slate-800 border border-slate-700 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between p-6 border-b border-slate-700">
-            <h2 className="text-lg font-semibold text-white">{title}</h2>
+        <div className="relative bg-white border border-gray-200 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="p-6">
             <div className="grid grid-cols-1 gap-4">
               {fields.map(field => (
                 <div key={field.name}>
-                  <label className="block text-sm text-slate-300 mb-1">
+                  <label className="block text-sm text-gray-700 mb-1">
                     {field.label}
-                    {field.required && <span className="text-red-400 ml-1">*</span>}
+                    {field.required && <span className="text-red-500 ml-1">*</span>}
                   </label>
                   {renderField(field)}
                 </div>
               ))}
             </div>
-            
+
             <div className="flex gap-3 mt-6">
               <button
                 type="submit"
@@ -141,7 +141,7 @@ export const EditModal = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm transition-colors"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm transition-colors"
               >
                 Cancel
               </button>

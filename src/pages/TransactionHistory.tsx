@@ -281,9 +281,9 @@ export const TransactionHistory = () => {
       case 'credit_note':
         return 'text-blue-400'
       case 'refund':
-        return 'text-red-400'
+        return 'text-red-600'
       default:
-        return 'text-slate-400'
+        return 'text-gray-500'
     }
   }
 
@@ -359,14 +359,14 @@ export const TransactionHistory = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Transaction History</h1>
-          <p className="text-slate-400">Complete ledger of all financial transactions</p>
+          <h1 className="text-2xl font-bold text-gray-900">Transaction History</h1>
+          <p className="text-gray-500">Complete ledger of all financial transactions</p>
         </div>
         <div className="flex gap-3">
           {selectedTransactions.size > 0 && (
             <button
               onClick={() => setShowBulkDelete(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-gray-900 rounded-xl text-sm font-medium transition-colors"
             >
               <Trash2 className="w-4 h-4" />
               Delete ({selectedTransactions.size})
@@ -374,7 +374,7 @@ export const TransactionHistory = () => {
           )}
           <button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-gray-900 rounded-xl text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Transaction
@@ -383,15 +383,15 @@ export const TransactionHistory = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-slate-800 rounded-lg border border-slate-700 p-6 space-y-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-white flex items-center">
+          <h3 className="text-lg font-medium text-gray-900 flex items-center">
             <Filter className="h-5 w-5 mr-2" />
             Search & Filters
           </h3>
           <button
             onClick={clearFilters}
-            className="text-sm text-emerald-400 hover:text-emerald-300"
+            className="text-sm text-emerald-400 hover:text-emerald-700"
           >
             Clear All
           </button>
@@ -399,13 +399,13 @@ export const TransactionHistory = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search transactions or projects..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
           </div>
           
@@ -417,7 +417,7 @@ export const TransactionHistory = () => {
                 setSortBy(field as any)
                 setSortOrder(order as 'asc' | 'desc')
               }}
-              className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+              className="flex-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
             >
               <option value="date-desc">Newest First</option>
               <option value="date-asc">Oldest First</option>
@@ -429,7 +429,7 @@ export const TransactionHistory = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label htmlFor="project_id" className="block text-sm font-medium text-slate-300 mb-1">
+            <label htmlFor="project_id" className="block text-sm font-medium text-gray-600 mb-1">
               Project
             </label>
             <select
@@ -437,7 +437,7 @@ export const TransactionHistory = () => {
               name="project_id"
               value={filters.project_id}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
             >
               <option value="">All Projects</option>
               {projects.map((project) => (
@@ -449,7 +449,7 @@ export const TransactionHistory = () => {
           </div>
 
           <div>
-            <label htmlFor="type" className="block text-sm font-medium text-slate-300 mb-1">
+            <label htmlFor="type" className="block text-sm font-medium text-gray-600 mb-1">
               Type
             </label>
             <select
@@ -457,7 +457,7 @@ export const TransactionHistory = () => {
               name="type"
               value={filters.type}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
             >
               <option value="">All Types</option>
               <option value="payment_received">Payment Received</option>
@@ -471,7 +471,7 @@ export const TransactionHistory = () => {
           </div>
 
           <div>
-            <label htmlFor="date_from" className="block text-sm font-medium text-slate-300 mb-1">
+            <label htmlFor="date_from" className="block text-sm font-medium text-gray-600 mb-1">
               From Date
             </label>
             <input
@@ -480,12 +480,12 @@ export const TransactionHistory = () => {
               name="date_from"
               value={filters.date_from}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           <div>
-            <label htmlFor="date_to" className="block text-sm font-medium text-slate-300 mb-1">
+            <label htmlFor="date_to" className="block text-sm font-medium text-gray-600 mb-1">
               To Date
             </label>
             <input
@@ -494,22 +494,22 @@ export const TransactionHistory = () => {
               name="date_to"
               value={filters.date_to}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
             />
           </div>
         </div>
       </div>
 
       {/* Transactions Table */}
-      <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-700">
-            <thead className="bg-slate-900">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left">
                   <button
                     onClick={selectAllTransactions}
-                    className="text-slate-400 hover:text-white transition-colors"
+                    className="text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     {selectedTransactions.size === filteredTransactions.length && filteredTransactions.length > 0 ? 
                       <CheckSquare className="w-4 h-4" /> : 
@@ -517,40 +517,40 @@ export const TransactionHistory = () => {
                     }
                   </button>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Project
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Type
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Mode
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Running Total
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Docs
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-slate-800 divide-y divide-slate-700">
+            <tbody className="bg-white divide-y divide-gray-200">
               {filteredTransactions.length > 0 ? (
                 filteredTransactions.map((transaction, index) => (
-                  <tr key={transaction.id} className="hover:bg-slate-700">
+                  <tr key={transaction.id} className="hover:bg-gray-100">
                     <td className="px-4 py-4">
                       <button
                         onClick={() => toggleTransactionSelection(transaction.id)}
-                        className="text-slate-400 hover:text-white transition-colors"
+                        className="text-gray-500 hover:text-gray-700 transition-colors"
                       >
                         {selectedTransactions.has(transaction.id) ? 
                           <CheckSquare className="w-4 h-4 text-emerald-400" /> : 
@@ -558,14 +558,14 @@ export const TransactionHistory = () => {
                         }
                       </button>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(transaction.date).toLocaleDateString('en-IN', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric'
                       })}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       {transaction.bettroi_projects?.name || 'Unknown'}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm">
@@ -583,7 +583,7 @@ export const TransactionHistory = () => {
                             href={transaction.attachment_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                            className="text-emerald-400 hover:text-emerald-700 transition-colors"
                             title="View Attachment"
                           >
                             <ExternalLink className="w-3 h-3" />
@@ -591,7 +591,7 @@ export const TransactionHistory = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-400">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                       {transaction.mode?.toUpperCase() || 'N/A'}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-emerald-400">
@@ -607,7 +607,7 @@ export const TransactionHistory = () => {
                             {totalDocs > 0 ? (
                               <button
                                 onClick={() => setDocModalTxId(transaction.id)}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-emerald-900/50 border border-emerald-600 text-emerald-300 hover:bg-emerald-800/50 rounded-lg text-xs font-semibold transition-colors"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-emerald-100 border border-emerald-300 text-emerald-700 hover:bg-emerald-800/50 rounded-lg text-xs font-semibold transition-colors"
                               >
                                 <Paperclip className="w-3.5 h-3.5" />
                                 {totalDocs} Doc{totalDocs > 1 ? 's' : ''}
@@ -615,7 +615,7 @@ export const TransactionHistory = () => {
                             ) : (
                               <button
                                 onClick={() => setDocModalTxId(transaction.id)}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-blue-900/40 border border-blue-600/50 text-blue-300 hover:bg-blue-800/50 hover:border-blue-500 rounded-lg text-xs font-semibold transition-colors"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-blue-100/40 border border-blue-300 text-blue-700 hover:bg-blue-100 hover:border-blue-400 rounded-lg text-xs font-semibold transition-colors"
                               >
                                 <Upload className="w-3.5 h-3.5" />
                                 Upload
@@ -629,14 +629,14 @@ export const TransactionHistory = () => {
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => setEditingTransaction(transaction)}
-                          className="p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/30 rounded-lg transition-colors"
+                          className="p-1.5 text-emerald-400 hover:text-emerald-700 hover:bg-emerald-100/30 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeletingTransaction(transaction)}
-                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded-lg transition-colors"
+                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-100/30 rounded-lg transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -647,7 +647,7 @@ export const TransactionHistory = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center text-slate-400">
+                  <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
                     {searchTerm || Object.values(filters).some(f => f) ? 'No transactions match your filters' : 'No transactions found'}
                   </td>
                 </tr>
@@ -658,7 +658,7 @@ export const TransactionHistory = () => {
       </div>
 
       <div className="flex items-center justify-between">
-        <div className="text-sm text-slate-400">
+        <div className="text-sm text-gray-500">
           Showing {filteredTransactions.length} of {transactions.length} transactions
         </div>
       </div>
@@ -709,62 +709,62 @@ export const TransactionHistory = () => {
         const hasLegacyAttachment = !!tx.attachment_url && !docs.some(d => d.url === tx.attachment_url)
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setDocModalTxId(null)}>
-            <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={() => setDocModalTxId(null)}>
+            <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
               {/* Header */}
-              <div className="flex items-center justify-between p-5 border-b border-slate-700">
+              <div className="flex items-center justify-between p-5 border-b border-gray-200">
                 <div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                     <Paperclip className="w-5 h-5 text-emerald-400" />
                     Documents
                   </h3>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-gray-500 mt-1">
                     {tx.bettroi_projects?.name} — {formatCurrency(Number(tx.amount))} — {new Date(tx.date).toLocaleDateString('en-IN')}
                   </p>
                 </div>
-                <button onClick={() => setDocModalTxId(null)} className="text-slate-400 hover:text-white p-1"><X className="w-5 h-5" /></button>
+                <button onClick={() => setDocModalTxId(null)} className="text-gray-500 hover:text-gray-700 p-1"><X className="w-5 h-5" /></button>
               </div>
 
               {/* Document List */}
               <div className="p-5 space-y-3 max-h-80 overflow-y-auto">
                 {/* Legacy attachment_url */}
                 {hasLegacyAttachment && (
-                  <div className="flex items-center gap-3 p-3 bg-slate-700/50 border border-slate-600 rounded-xl">
+                  <div className="flex items-center gap-3 p-3 bg-gray-100 border border-gray-300 rounded-xl">
                     <Link className="w-5 h-5 text-blue-400 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white font-medium truncate">Legacy Attachment</p>
-                      <p className="text-xs text-slate-400 truncate">{tx.attachment_url}</p>
+                      <p className="text-sm text-gray-900 font-medium truncate">Legacy Attachment</p>
+                      <p className="text-xs text-gray-500 truncate">{tx.attachment_url}</p>
                     </div>
                     <div className="flex gap-1">
-                      <a href={tx.attachment_url!} target="_blank" rel="noopener noreferrer" className="p-1.5 text-emerald-400 hover:bg-emerald-900/50 rounded-lg transition-colors" title="Open"><Eye className="w-4 h-4" /></a>
+                      <a href={tx.attachment_url!} target="_blank" rel="noopener noreferrer" className="p-1.5 text-emerald-400 hover:bg-emerald-100 rounded-lg transition-colors" title="Open"><Eye className="w-4 h-4" /></a>
                     </div>
                   </div>
                 )}
 
                 {/* Documents */}
                 {docs.map((doc, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 bg-slate-700/50 border border-slate-600 rounded-xl">
+                  <div key={i} className="flex items-center gap-3 p-3 bg-gray-100 border border-gray-300 rounded-xl">
                     {doc.type === 'upload' ? (
-                      <FileText className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                      <FileText className="w-5 h-5 text-amber-600 flex-shrink-0" />
                     ) : (
                       <Link className="w-5 h-5 text-blue-400 flex-shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white font-medium truncate">{doc.name}</p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-sm text-gray-900 font-medium truncate">{doc.name}</p>
+                      <p className="text-xs text-gray-500">
                         {doc.type === 'upload' ? '📎 Uploaded' : '🔗 Link'} • {new Date(doc.uploadedAt).toLocaleDateString('en-IN')}
                       </p>
                     </div>
                     <div className="flex gap-1">
-                      <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-emerald-400 hover:bg-emerald-900/50 rounded-lg transition-colors" title="View"><Eye className="w-4 h-4" /></a>
-                      <a href={doc.url} download={doc.name} className="p-1.5 text-blue-400 hover:bg-blue-900/50 rounded-lg transition-colors" title="Download"><Download className="w-4 h-4" /></a>
-                      <button onClick={() => removeDocument(docModalTxId!, i)} className="p-1.5 text-red-400 hover:bg-red-900/50 rounded-lg transition-colors" title="Remove"><Trash2 className="w-4 h-4" /></button>
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-emerald-400 hover:bg-emerald-100 rounded-lg transition-colors" title="View"><Eye className="w-4 h-4" /></a>
+                      <a href={doc.url} download={doc.name} className="p-1.5 text-blue-400 hover:bg-blue-100 rounded-lg transition-colors" title="Download"><Download className="w-4 h-4" /></a>
+                      <button onClick={() => removeDocument(docModalTxId!, i)} className="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="Remove"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
                 ))}
 
                 {docs.length === 0 && !hasLegacyAttachment && (
-                  <div className="text-center py-6 text-slate-500">
+                  <div className="text-center py-6 text-gray-400">
                     <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No documents attached yet</p>
                     <p className="text-xs mt-1">Upload a file or paste a link below</p>
@@ -773,7 +773,7 @@ export const TransactionHistory = () => {
               </div>
 
               {/* Upload / Link Actions */}
-              <div className="p-5 border-t border-slate-700 space-y-3">
+              <div className="p-5 border-t border-gray-200 space-y-3">
                 {/* File Upload */}
                 <div className="flex gap-2">
                   <input
@@ -792,7 +792,7 @@ export const TransactionHistory = () => {
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingDoc}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 disabled:opacity-50 text-gray-900 rounded-xl text-sm font-medium transition-colors"
                   >
                     <Upload className="w-4 h-4" />
                     {uploadingDoc ? 'Uploading...' : 'Upload File'}
@@ -806,7 +806,7 @@ export const TransactionHistory = () => {
                     value={linkInput}
                     onChange={(e) => setLinkInput(e.target.value)}
                     placeholder="Paste document URL (Google Drive, Dropbox, etc.)"
-                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-xl text-white text-sm placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && linkInput.trim()) {
                         addDocumentLink(docModalTxId!, linkInput)
@@ -816,13 +816,13 @@ export const TransactionHistory = () => {
                   <button
                     onClick={() => addDocumentLink(docModalTxId!, linkInput)}
                     disabled={!linkInput.trim()}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:opacity-50 text-gray-900 rounded-xl text-sm font-medium transition-colors"
                   >
                     <Link className="w-4 h-4" />
                   </button>
                 </div>
 
-                <p className="text-[11px] text-slate-500 text-center">
+                <p className="text-[11px] text-gray-400 text-center">
                   Supports PDF, images, Excel, Word • Max 50MB per file
                 </p>
               </div>

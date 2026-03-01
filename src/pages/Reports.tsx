@@ -306,27 +306,27 @@ export const Reports = () => {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Reports & Analytics</h1>
-          <p className="text-slate-400">Financial insights and project performance</p>
+          <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
+          <p className="text-gray-500">Financial insights and project performance</p>
         </div>
         <div className="flex gap-3 no-print">
           <button 
             onClick={exportToPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-gray-900 rounded-lg text-sm font-medium transition-colors"
           >
             <Printer className="w-4 h-4" />
             Print Report
           </button>
           <button 
             onClick={exportToCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-gray-900 rounded-lg text-sm font-medium transition-colors"
           >
             <Download className="w-4 h-4" />
             Export Transactions
           </button>
           <button 
             onClick={exportProjectsCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-gray-900 rounded-lg text-sm font-medium transition-colors"
           >
             <FileText className="w-4 h-4" />
             Export Projects
@@ -335,9 +335,9 @@ export const Reports = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-slate-800 rounded-lg border border-slate-700 p-4 no-print">
+      <div className="bg-white rounded-lg border border-gray-200 p-4 no-print">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-white flex items-center">
+          <h3 className="text-lg font-medium text-gray-900 flex items-center">
             <Filter className="h-5 w-5 mr-2" />
             Filters
           </h3>
@@ -345,31 +345,31 @@ export const Reports = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Date From</label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Date From</label>
             <input
               type="date"
               value={filters.dateFrom}
               onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Date To</label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Date To</label>
             <input
               type="date"
               value={filters.dateTo}
               onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Project</label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Project</label>
             <select
               value={filters.projectId}
               onChange={(e) => setFilters({ ...filters, projectId: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
             >
               <option value="">All Projects</option>
               {projects.map(p => (
@@ -379,15 +379,15 @@ export const Reports = () => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Search</label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Search</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
               <input
                 type="text"
                 value={filters.searchTerm}
                 onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
                 placeholder="Search..."
-                className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
               />
             </div>
           </div>
@@ -397,17 +397,17 @@ export const Reports = () => {
       <div className="print-area">
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+          <div className="bg-white rounded-lg p-6 border border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <Calendar className="h-8 w-8 text-blue-500" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-400 truncate">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
                     Total Projects
                   </dt>
-                  <dd className="text-lg font-medium text-white">
+                  <dd className="text-lg font-medium text-gray-900">
                     {summaryStats.totalProjects}
                   </dd>
                 </dl>
@@ -415,17 +415,17 @@ export const Reports = () => {
             </div>
           </div>
 
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+          <div className="bg-white rounded-lg p-6 border border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <TrendingUp className="h-8 w-8 text-emerald-500" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-400 truncate">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
                     Portfolio Value
                   </dt>
-                  <dd className="text-lg font-medium text-white">
+                  <dd className="text-lg font-medium text-gray-900">
                     {formatCurrency(summaryStats.totalValue)}
                   </dd>
                 </dl>
@@ -433,17 +433,17 @@ export const Reports = () => {
             </div>
           </div>
 
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+          <div className="bg-white rounded-lg p-6 border border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <TrendingUp className="h-8 w-8 text-green-500" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-400 truncate">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
                     Amount Collected
                   </dt>
-                  <dd className="text-lg font-medium text-white">
+                  <dd className="text-lg font-medium text-gray-900">
                     {formatCurrency(summaryStats.totalReceived)}
                   </dd>
                 </dl>
@@ -451,17 +451,17 @@ export const Reports = () => {
             </div>
           </div>
 
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+          <div className="bg-white rounded-lg p-6 border border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <TrendingUp className="h-8 w-8 text-red-500" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-400 truncate">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
                     Total Outstanding
                   </dt>
-                  <dd className="text-lg font-medium text-white">
+                  <dd className="text-lg font-medium text-gray-900">
                     {formatCurrency(summaryStats.totalOutstanding)}
                   </dd>
                 </dl>
@@ -469,17 +469,17 @@ export const Reports = () => {
             </div>
           </div>
 
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+          <div className="bg-white rounded-lg p-6 border border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <TrendingUp className="h-8 w-8 text-yellow-500" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-400 truncate">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
                     Collection Rate
                   </dt>
-                  <dd className="text-lg font-medium text-white">
+                  <dd className="text-lg font-medium text-gray-900">
                     {summaryStats.completionRate.toFixed(1)}%
                   </dd>
                 </dl>
@@ -490,8 +490,8 @@ export const Reports = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Monthly Trend */}
-          <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
-            <h3 className="text-lg font-medium text-white mb-4">Monthly Trends (Last 12 Months)</h3>
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Monthly Trends (Last 12 Months)</h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyData}>
@@ -515,23 +515,23 @@ export const Reports = () => {
           </div>
 
           {/* Aging Analysis */}
-          <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
-            <h3 className="text-lg font-medium text-white mb-4">Aging Analysis</h3>
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Aging Analysis</h3>
             <div className="space-y-4">
               {agingData.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div 
                       className="w-4 h-4 rounded-full" 
                       style={{ backgroundColor: item.color }}
                     />
                     <div>
-                      <p className="text-white font-medium">{item.range}</p>
-                      <p className="text-slate-400 text-sm">{item.count} projects</p>
+                      <p className="text-gray-900 font-medium">{item.range}</p>
+                      <p className="text-gray-500 text-sm">{item.count} projects</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-white font-bold">{formatCurrency(item.amount)}</p>
+                    <p className="text-gray-900 font-bold">{formatCurrency(item.amount)}</p>
                   </div>
                 </div>
               ))}
@@ -540,40 +540,40 @@ export const Reports = () => {
         </div>
 
         {/* Project Performance Table */}
-        <div className="bg-slate-800 rounded-lg border border-slate-700">
-          <div className="px-6 py-4 border-b border-slate-700">
-            <h3 className="text-lg font-medium text-white">Project Performance</h3>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">Project Performance</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-700">
-              <thead className="bg-slate-900">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Project
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Total Value
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Received
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Balance
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Progress
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-slate-800 divide-y divide-slate-700">
+              <tbody className="bg-white divide-y divide-gray-200">
                 {projectData.map((project, index) => {
                   const progress = project.totalValue > 0 ? (project.received / project.totalValue) * 100 : 0
                   return (
                     <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {project.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(project.totalValue)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-green-400">
@@ -584,9 +584,9 @@ export const Reports = () => {
                           {formatCurrency(project.balance)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex items-center">
-                          <div className="w-full bg-slate-700 rounded-full h-2">
+                          <div className="w-full bg-gray-100 rounded-full h-2">
                             <div
                               className={`h-2 rounded-full ${
                                 progress === 100 ? 'bg-green-500' :
@@ -597,7 +597,7 @@ export const Reports = () => {
                               style={{ width: `${Math.min(progress, 100)}%` }}
                             ></div>
                           </div>
-                          <span className="ml-2 text-xs text-slate-400">
+                          <span className="ml-2 text-xs text-gray-500">
                             {progress.toFixed(0)}%
                           </span>
                         </div>

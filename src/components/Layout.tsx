@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom'
-import { 
-  LayoutDashboard, 
-  FolderOpen, 
-  Plus, 
-  History, 
+import {
+  LayoutDashboard,
+  FolderOpen,
+  Plus,
+  History,
   BarChart3,
   FileText,
   Calculator,
@@ -26,16 +26,16 @@ export const Layout = ({ children }: LayoutProps) => {
   ]
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* Header */}
-      <header className="bg-slate-900 border-b border-slate-800">
+      <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2">
-              <Calculator className="h-8 w-8 text-emerald-500" />
-              <h1 className="text-xl font-bold text-white">Bettroi Hisab</h1>
+              <Calculator className="h-8 w-8 text-emerald-600" />
+              <h1 className="text-xl font-bold text-gray-900">Bettroi Hisab</h1>
             </div>
-            <div className="text-sm text-slate-400">
+            <div className="text-sm text-gray-500">
               Account Tracker
             </div>
           </div>
@@ -43,7 +43,7 @@ export const Layout = ({ children }: LayoutProps) => {
       </header>
 
       {/* Navigation */}
-      <nav className="bg-slate-900 border-b border-slate-800">
+      <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             {navLinks.map(({ to, icon: Icon, label }) => (
@@ -53,8 +53,8 @@ export const Layout = ({ children }: LayoutProps) => {
                 className={({ isActive }) =>
                   `flex items-center space-x-2 py-4 px-2 text-sm font-medium border-b-2 transition-colors ${
                     isActive
-                      ? 'border-emerald-500 text-emerald-400'
-                      : 'border-transparent text-slate-400 hover:text-white hover:border-slate-600'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
                   }`
                 }
               >

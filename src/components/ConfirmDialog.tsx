@@ -62,28 +62,28 @@ export const ConfirmDialog = ({
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
-        <div className="relative bg-slate-800 border border-slate-700 rounded-xl max-w-md w-full">
+        <div className="relative bg-white border border-gray-200 rounded-xl shadow-xl max-w-md w-full">
           <div className="p-6">
             <div className="flex items-center gap-4">
               <div className={`flex-shrink-0 w-10 h-10 ${config.iconBg} rounded-full flex items-center justify-center`}>
                 <Icon className={`w-5 h-5 ${config.iconColor}`} />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-white mb-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
                   {title}
                 </h3>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-gray-500">
                   {message}
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="flex gap-3 mt-6">
               <button
                 onClick={handleConfirm}
@@ -95,7 +95,7 @@ export const ConfirmDialog = ({
               <button
                 onClick={onClose}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-700/50 text-slate-300 rounded-lg text-sm transition-colors"
+                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-100/50 text-gray-700 rounded-lg text-sm transition-colors"
               >
                 {cancelText}
               </button>

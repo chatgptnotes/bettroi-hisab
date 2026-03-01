@@ -193,13 +193,13 @@ export const Quotations = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Quotations</h1>
-          <p className="text-slate-400 text-sm mt-1">Track all quotes sent to Bettroi</p>
+          <p className="text-gray-500 text-sm mt-1">Track all quotes sent to Bettroi</p>
         </div>
         <div className="flex gap-3">
           {selectedQuotations.size > 0 && (
             <button
               onClick={() => setShowBulkDelete(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-gray-900 rounded-xl text-sm font-medium transition-colors"
             >
               <Trash2 className="w-4 h-4" />
               Delete ({selectedQuotations.size})
@@ -207,7 +207,7 @@ export const Quotations = () => {
           )}
           <button 
             onClick={() => setShowAddForm(true)} 
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-gray-900 rounded-xl text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" /> New Quote
           </button>
@@ -216,33 +216,33 @@ export const Quotations = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
-          <p className="text-xs text-slate-400 uppercase tracking-wide">Total Quoted</p>
-          <p className="text-2xl font-bold text-white mt-1">{formatCurrency(totalQuoted)}</p>
-          <p className="text-xs text-slate-500 mt-1">{quotations.length} quotations</p>
+        <div className="bg-white/80 border border-gray-200 rounded-xl p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wide">Total Quoted</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(totalQuoted)}</p>
+          <p className="text-xs text-gray-400 mt-1">{quotations.length} quotations</p>
         </div>
-        <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
-          <p className="text-xs text-slate-400 uppercase tracking-wide">Accepted</p>
+        <div className="bg-white/80 border border-gray-200 rounded-xl p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wide">Accepted</p>
           <p className="text-2xl font-bold text-emerald-400 mt-1">{formatCurrency(totalAccepted)}</p>
-          <p className="text-xs text-slate-500 mt-1">{quotations.filter(q => q.status === 'accepted').length} accepted</p>
+          <p className="text-xs text-gray-400 mt-1">{quotations.filter(q => q.status === 'accepted').length} accepted</p>
         </div>
-        <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
-          <p className="text-xs text-slate-400 uppercase tracking-wide">Pending Response</p>
+        <div className="bg-white/80 border border-gray-200 rounded-xl p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wide">Pending Response</p>
           <p className="text-2xl font-bold text-blue-400 mt-1">{formatCurrency(totalPending)}</p>
-          <p className="text-xs text-slate-500 mt-1">{quotations.filter(q => q.status === 'sent').length} awaiting</p>
+          <p className="text-xs text-gray-400 mt-1">{quotations.filter(q => q.status === 'sent').length} awaiting</p>
         </div>
       </div>
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search quotations or projects..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />
         </div>
         
@@ -250,7 +250,7 @@ export const Quotations = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+            className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
           >
             <option value="all">All Status</option>
             <option value="draft">Draft</option>
@@ -267,7 +267,7 @@ export const Quotations = () => {
               setSortBy(field as any)
               setSortOrder(order as 'asc' | 'desc')
             }}
-            className="px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500"
+            className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
           >
             <option value="date-desc">Newest First</option>
             <option value="date-asc">Oldest First</option>
@@ -279,15 +279,15 @@ export const Quotations = () => {
       </div>
 
       {/* Quotations Table */}
-      <div className="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden">
+      <div className="bg-white/80 border border-gray-200 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-slate-900/50">
+            <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left">
                   <button
                     onClick={selectAllQuotations}
-                    className="text-slate-400 hover:text-white transition-colors"
+                    className="text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     {selectedQuotations.size === filteredQuotations.length && filteredQuotations.length > 0 ? 
                       <CheckSquare className="w-4 h-4" /> : 
@@ -295,19 +295,19 @@ export const Quotations = () => {
                     }
                   </button>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Quotation</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quotation</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700">
+            <tbody className="divide-y divide-gray-200">
               {filteredQuotations.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-12">
                     <FileText className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-                    <p className="text-slate-400">
+                    <p className="text-gray-500">
                       {searchTerm || statusFilter !== 'all' ? 'No quotations match your filters' : 'No quotations found'}
                     </p>
                   </td>
@@ -316,11 +316,11 @@ export const Quotations = () => {
                 const sc = statusConfig[q.status] || statusConfig.draft
                 const Icon = sc.icon
                 return (
-                  <tr key={q.id} className="hover:bg-slate-700/50 transition-colors">
+                  <tr key={q.id} className="hover:bg-gray-100 transition-colors">
                     <td className="px-4 py-4">
                       <button
                         onClick={() => toggleQuotationSelection(q.id)}
-                        className="text-slate-400 hover:text-white transition-colors"
+                        className="text-gray-500 hover:text-gray-700 transition-colors"
                       >
                         {selectedQuotations.has(q.id) ? 
                           <CheckSquare className="w-4 h-4 text-emerald-400" /> : 
@@ -331,21 +331,21 @@ export const Quotations = () => {
                     <td className="px-4 py-4">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-white font-semibold text-sm">{q.bettroi_projects?.name || 'Unlinked'}</h3>
+                          <h3 className="text-gray-900 font-semibold text-sm">{q.bettroi_projects?.name || 'Unlinked'}</h3>
                           {q.quote_url && (
                             <a
                               href={q.quote_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                              className="text-emerald-400 hover:text-emerald-700 transition-colors"
                               title="View Document"
                             >
                               <ExternalLink className="w-3 h-3" />
                             </a>
                           )}
                         </div>
-                        {q.description && <p className="text-slate-300 text-sm mt-1">{q.description}</p>}
-                        {q.notes && <p className="text-slate-500 text-xs mt-1">{q.notes}</p>}
+                        {q.description && <p className="text-gray-600 text-sm mt-1">{q.description}</p>}
+                        {q.notes && <p className="text-gray-400 text-xs mt-1">{q.notes}</p>}
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -355,35 +355,35 @@ export const Quotations = () => {
                       {q.status === 'sent' && (
                         <div className="flex gap-1 mt-2">
                           <button onClick={() => updateStatus(q.id, 'accepted')} className="px-2 py-1 bg-emerald-600/20 text-emerald-400 text-xs rounded hover:bg-emerald-600/30 transition-colors">✓ Accept</button>
-                          <button onClick={() => updateStatus(q.id, 'rejected')} className="px-2 py-1 bg-red-600/20 text-red-400 text-xs rounded hover:bg-red-600/30 transition-colors">✗ Reject</button>
+                          <button onClick={() => updateStatus(q.id, 'rejected')} className="px-2 py-1 bg-red-600/20 text-red-600 text-xs rounded hover:bg-red-600/30 transition-colors">✗ Reject</button>
                         </div>
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <p className="text-lg font-bold text-white">{formatCurrency(q.amount)}</p>
+                      <p className="text-lg font-bold text-gray-900">{formatCurrency(q.amount)}</p>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-sm text-slate-400">{formatDate(q.quote_date)}</span>
+                      <span className="text-sm text-gray-500">{formatDate(q.quote_date)}</span>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setEditingQuotation(q)}
-                          className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                          className="text-emerald-400 hover:text-emerald-700 transition-colors"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => duplicateQuotation(q)}
-                          className="text-blue-400 hover:text-blue-300 transition-colors"
+                          className="text-blue-400 hover:text-blue-700 transition-colors"
                           title="Duplicate"
                         >
                           <Copy className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeletingQuotation(q)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
+                          className="text-red-600 hover:text-red-700 transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
