@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { TrendingUp, TrendingDown, Clock, DollarSign, Upload, Paperclip, Eye, Download, Trash2, X, FileText, Link } from 'lucide-react'
+import { TrendingUp, TrendingDown, Clock, DollarSign, Upload, Paperclip, Eye, Download, Trash2, X, FileText, Link, MessageSquare } from 'lucide-react'
 import { supabase, type TransactionDocument } from '../lib/supabase'
 
 interface DashboardStats {
@@ -17,6 +17,7 @@ export const Dashboard = () => {
     projectsCount: 0,
   })
   const [recentTransactions, setRecentTransactions] = useState<any[]>([])
+  const [allProjects, setAllProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [docModalTxId, setDocModalTxId] = useState<string | null>(null)
   const [uploadingDoc, setUploadingDoc] = useState(false)
@@ -72,6 +73,7 @@ export const Dashboard = () => {
         projectsCount: projects?.length || 0,
       })
 
+      setAllProjects(projects || [])
       setRecentTransactions(recentTxns || [])
       setLoading(false)
     } catch (error) {
@@ -281,6 +283,38 @@ export const Dashboard = () => {
           )}
         </div>
       </div>
+      {/* Project Notes & Agreements */}
+      {allProjects.some((p: any) => p.notes?.trim()) && (
+        <div className="bg-slate-800 rounded-lg border border-slate-700">
+          <div className="px-6 py-4 border-b border-slate-700">
+            <h3 className="text-lg font-medium text-white flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-amber-400" />
+              Project Notes & Agreements
+            </h3>
+          </div>
+          <div className="divide-y divide-slate-700">
+            {allProjects.filter((p: any) => p.notes?.trim()).map((project: any) => (
+              <div key={project.id} className="px-6 py-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-amber-400" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-white">{project.name}</p>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                        project.status === 'active' ? 'bg-green-900/50 text-green-300' :
+                        project.status === 'completed' ? 'bg-blue-900/50 text-blue-300' :
+                        'bg-yellow-900/50 text-yellow-300'
+                      }`}>{project.status}</span>
+                    </div>
+                    <p className="text-sm text-slate-300 mt-1 whitespace-pre-wrap">{project.notes}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Document Modal */}
       {docModalTxId && (() => {
         const tx = recentTransactions.find((t: any) => t.id === docModalTxId)
