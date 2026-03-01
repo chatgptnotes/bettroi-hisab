@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Search, Edit2, Trash2, ExternalLink, CheckSquare, Square } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, ExternalLink, CheckSquare, Square, MessageSquare, ChevronDown, ChevronUp, Save } from 'lucide-react'
 import { supabase, type BettroiProject } from '../lib/supabase'
 import { EditModal, type FieldDefinition } from '../components/EditModal'
 import { ConfirmDialog } from '../components/ConfirmDialog'
@@ -23,6 +23,9 @@ export const Projects = () => {
   const [editingProject, setEditingProject] = useState<ProjectWithBalance | null>(null)
   const [deletingProject, setDeletingProject] = useState<ProjectWithBalance | null>(null)
   const [showBulkDelete, setShowBulkDelete] = useState(false)
+  const [expandedComments, setExpandedComments] = useState<string | null>(null)
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({})
+  const [savingComment, setSavingComment] = useState<string | null>(null)
 
   useEffect(() => {
     fetchProjects()
@@ -186,6 +189,24 @@ export const Projects = () => {
     } else {
       setSelectedProjects(new Set(filteredProjects.map(p => p.id)))
     }
+  }
+
+  const toggleComments = (projectId: string, currentNotes: string) => {
+    if (expandedComments === projectId) {
+      setExpandedComments(null)
+    } else {
+      setExpandedComments(projectId)
+      if (!(projectId in commentDrafts)) {
+        setCommentDrafts(prev => ({ ...prev, [projectId]: currentNotes || '' }))
+      }
+    }
+  }
+
+  const saveComment = async (projectId: string) => {
+    setSavingComment(projectId)
+    await supabase.from('bettroi_projects').update({ notes: commentDrafts[projectId] || '' }).eq('id', projectId)
+    await fetchProjects()
+    setSavingComment(null)
   }
 
   const formatCurrency = (amount: number) => {
@@ -352,81 +373,126 @@ export const Projects = () => {
             </thead>
             <tbody className="bg-slate-800 divide-y divide-slate-700">
               {filteredProjects.length > 0 ? (
-                filteredProjects.map((project) => (
-                  <tr key={project.id} className="hover:bg-slate-700">
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => toggleProjectSelection(project.id)}
-                        className="text-slate-400 hover:text-white transition-colors"
-                      >
-                        {selectedProjects.has(project.id) ? 
-                          <CheckSquare className="w-4 h-4 text-emerald-400" /> : 
-                          <Square className="w-4 h-4" />
-                        }
-                      </button>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div>
-                        <div className="text-sm font-medium text-white flex items-center gap-2">
-                          {project.name}
-                          {project.quote_url && (
-                            <a
-                              href={project.quote_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-emerald-400 hover:text-emerald-300"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
-                        </div>
-                        {project.client_name && (
-                          <div className="text-sm text-slate-400">
-                            {project.client_name}
+                filteredProjects.map((project) => {
+                  const isExpanded = expandedComments === project.id
+                  const hasNotes = !!project.notes?.trim()
+                  return (
+                    <React.Fragment key={project.id}>
+                      <tr className="hover:bg-slate-700">
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => toggleProjectSelection(project.id)}
+                            className="text-slate-400 hover:text-white transition-colors"
+                          >
+                            {selectedProjects.has(project.id) ? 
+                              <CheckSquare className="w-4 h-4 text-emerald-400" /> : 
+                              <Square className="w-4 h-4" />
+                            }
+                          </button>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div>
+                            <div className="text-sm font-medium text-white flex items-center gap-2">
+                              {project.name}
+                              {project.quote_url && (
+                                <a href={project.quote_url} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300">
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
+                            </div>
+                            {project.client_name && (
+                              <div className="text-sm text-slate-400">{project.client_name}</div>
+                            )}
+                            {hasNotes && !isExpanded && (
+                              <div className="text-xs text-slate-500 mt-1 truncate max-w-[200px]">💬 {project.notes}</div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
-                        {project.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-white">
-                      {formatCurrency(Number(project.total_value))}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-green-400">
-                      {formatCurrency(project.totalReceived)}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span className={project.balance > 0 ? 'text-yellow-400' : 'text-green-400'}>
-                        {formatCurrency(project.balance)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setEditingProject(project)}
-                          className="text-emerald-400 hover:text-emerald-300 transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeletingProject(project)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <Link
-                          to={`/project/${project.id}`}
-                          className="text-blue-400 hover:text-blue-300 transition-colors"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
+                            {project.status.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-white">
+                          {formatCurrency(Number(project.total_value))}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-green-400">
+                          {formatCurrency(project.totalReceived)}
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          <span className={project.balance > 0 ? 'text-yellow-400' : 'text-green-400'}>
+                            {formatCurrency(project.balance)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => toggleComments(project.id, project.notes || '')}
+                              className={`p-1.5 rounded-lg transition-colors ${isExpanded ? 'bg-amber-900/50 text-amber-300' : hasNotes ? 'text-amber-400 hover:bg-amber-900/30' : 'text-slate-400 hover:text-amber-300 hover:bg-slate-700'}`}
+                              title="Notes & Agreements"
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setEditingProject(project)} className="p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/30 rounded-lg transition-colors" title="Edit">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setDeletingProject(project)} className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded-lg transition-colors" title="Delete">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            <Link to={`/project/${project.id}`} className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 rounded-lg transition-colors" title="Details">
+                              <ExternalLink className="w-4 h-4" />
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                      {/* Expandable Comments Row */}
+                      {isExpanded && (
+                        <tr className="bg-slate-900/50">
+                          <td colSpan={7} className="px-6 py-4">
+                            <div className="flex items-start gap-3">
+                              <MessageSquare className="w-5 h-5 text-amber-400 mt-2 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">
+                                  💬 Notes & Agreements — {project.name}
+                                </p>
+                                <textarea
+                                  value={commentDrafts[project.id] ?? project.notes ?? ''}
+                                  onChange={(e) => setCommentDrafts(prev => ({ ...prev, [project.id]: e.target.value }))}
+                                  placeholder="Record agreements with BT, Harita, or Bettroi here... e.g. payment terms, delivery dates, scope changes, margin splits..."
+                                  className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white text-sm placeholder-slate-500 focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-y min-h-[100px]"
+                                  rows={4}
+                                />
+                                <div className="flex items-center justify-between mt-2">
+                                  <p className="text-xs text-slate-500">
+                                    {(commentDrafts[project.id] ?? project.notes ?? '') !== (project.notes ?? '') && (
+                                      <span className="text-amber-400">● Unsaved changes</span>
+                                    )}
+                                  </p>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => setExpandedComments(null)}
+                                      className="px-3 py-1.5 text-slate-400 hover:text-white text-xs rounded-lg transition-colors"
+                                    >
+                                      Close
+                                    </button>
+                                    <button
+                                      onClick={() => saveComment(project.id)}
+                                      disabled={savingComment === project.id}
+                                      className="flex items-center gap-1.5 px-4 py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition-colors"
+                                    >
+                                      <Save className="w-3.5 h-3.5" />
+                                      {savingComment === project.id ? 'Saving...' : 'Save Notes'}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  )
+                }))
               ) : (
                 <tr>
                   <td colSpan={7} className="px-6 py-4 text-center text-slate-400">
