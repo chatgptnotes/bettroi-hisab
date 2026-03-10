@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { Zap } from 'lucide-react'
+
+const DEFAULT_EMAIL = 'cmd@hopehospital.com'
+const DEFAULT_PASSWORD = 'Nagpur@1'
 
 export function Login() {
   const [email, setEmail] = useState('')
@@ -11,13 +15,14 @@ export function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (error) {
-      setError(error.message)
-    }
+    if (error) setError(error.message)
     setLoading(false)
+  }
+
+  const autoFill = () => {
+    setEmail(DEFAULT_EMAIL)
+    setPassword(DEFAULT_PASSWORD)
   }
 
   return (
@@ -30,7 +35,23 @@ export function Login() {
           <p className="text-slate-400 text-sm mt-1">Sign in to your account</p>
         </div>
 
-        {/* Card */}
+        {/* Quick sign-in card */}
+        <div className="bg-indigo-900/40 border border-indigo-700 rounded-xl px-5 py-4 mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-indigo-300 text-xs font-semibold uppercase tracking-wide mb-0.5">Quick Sign In</p>
+            <p className="text-white text-sm font-medium">{DEFAULT_EMAIL}</p>
+          </div>
+          <button
+            type="button"
+            onClick={autoFill}
+            className="flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-3 py-2 rounded-lg transition-colors"
+          >
+            <Zap className="h-3.5 w-3.5" />
+            <span>Fill</span>
+          </button>
+        </div>
+
+        {/* Login form */}
         <form onSubmit={handleLogin} className="bg-slate-800 rounded-2xl p-8 shadow-xl space-y-5">
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
