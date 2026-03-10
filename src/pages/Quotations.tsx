@@ -1,8 +1,29 @@
 import { useEffect, useState } from 'react'
-import { FileText, Plus, Check, X, Clock, Edit3, ExternalLink, Search, Edit2, Trash2, Copy, CheckSquare, Square } from 'lucide-react'
+import {
+  FileText, Plus, Check, X, Clock, Edit3, ExternalLink, Search,
+  Edit2, Trash2, Copy, CheckSquare, Square, LayoutList, LayoutGrid
+} from 'lucide-react'
 import { supabase, type BettroiProject, type BettroiQuotation } from '../lib/supabase'
-import { EditModal, type FieldDefinition } from '../components/EditModal'
+import { QuotationModal } from '../components/QuotationModal'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+
+const statusConfig: Record<string, { bg: string; text: string; icon: any }> = {
+  sent_to_bt:          { bg: 'bg-indigo-100 text-indigo-700',  text: 'Sent to BT',                    icon: Clock },
+  bt_sent_to_client:   { bg: 'bg-blue-100 text-blue-700',      text: 'BT Sent to Client',              icon: Clock },
+  client_accepted:     { bg: 'bg-emerald-100 text-emerald-700',text: 'Client Accepted – Go Ahead',     icon: Check },
+  sent_to_bt_revision: { bg: 'bg-amber-100 text-amber-700',    text: 'Sent to BT – Needs Revision',   icon: Edit3 },
+  draft:               { bg: 'bg-gray-100 text-gray-700',      text: 'Draft',                          icon: Edit3 },
+  rejected_by_client:  { bg: 'bg-red-100 text-red-700',        text: 'Rejected by Client',             icon: X },
+  on_hold:             { bg: 'bg-slate-100 text-slate-700',    text: 'On Hold',                        icon: Clock },
+  client_revision:     { bg: 'bg-orange-100 text-orange-700',  text: 'Client Requested Revision',      icon: Edit3 },
+  expired:             { bg: 'bg-rose-100 text-rose-700',      text: 'Quote Expired',                  icon: X },
+  negotiating:         { bg: 'bg-purple-100 text-purple-700',  text: 'Under Negotiation',              icon: Clock },
+  // legacy fallbacks
+  sent:     { bg: 'bg-blue-100 text-blue-700',    text: 'Sent',     icon: Clock },
+  accepted: { bg: 'bg-emerald-100 text-emerald-700', text: 'Accepted', icon: Check },
+  rejected: { bg: 'bg-red-100 text-red-700',      text: 'Rejected', icon: X },
+  revised:  { bg: 'bg-amber-100 text-amber-700',  text: 'Revised',  icon: Edit3 },
+}
 
 export const Quotations = () => {
   const [quotations, setQuotations] = useState<BettroiQuotation[]>([])
@@ -18,12 +39,19 @@ export const Quotations = () => {
   const [editingQuotation, setEditingQuotation] = useState<BettroiQuotation | null>(null)
   const [deletingQuotation, setDeletingQuotation] = useState<BettroiQuotation | null>(null)
   const [showBulkDelete, setShowBulkDelete] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'card'>(() => {
+    return (localStorage.getItem('quotations-view') as 'list' | 'card') || 'list'
+  })
 
   useEffect(() => { fetchData() }, [])
 
   useEffect(() => {
     filterAndSortQuotations()
   }, [quotations, searchTerm, statusFilter, sortBy, sortOrder])
+
+  useEffect(() => {
+    localStorage.setItem('quotations-view', viewMode)
+  }, [viewMode])
 
   const fetchData = async () => {
     const { data: q } = await supabase.from('bettroi_quotations').select('*, bettroi_projects(name)').order('quote_date', { ascending: false })
@@ -43,7 +71,6 @@ export const Quotations = () => {
 
     filtered.sort((a, b) => {
       let aVal: any, bVal: any
-      
       if (sortBy === 'date') {
         aVal = new Date(a.quote_date).getTime()
         bVal = new Date(b.quote_date).getTime()
@@ -54,12 +81,8 @@ export const Quotations = () => {
         aVal = a.status.toLowerCase()
         bVal = b.status.toLowerCase()
       }
-
-      if (sortOrder === 'asc') {
-        return aVal < bVal ? -1 : aVal > bVal ? 1 : 0
-      } else {
-        return aVal > bVal ? -1 : aVal < bVal ? 1 : 0
-      }
+      if (sortOrder === 'asc') return aVal < bVal ? -1 : aVal > bVal ? 1 : 0
+      else return aVal > bVal ? -1 : aVal < bVal ? 1 : 0
     })
 
     setFilteredQuotations(filtered)
@@ -117,11 +140,6 @@ export const Quotations = () => {
     fetchData()
   }
 
-  const updateStatus = async (id: string, status: string) => {
-    await supabase.from('bettroi_quotations').update({ status }).eq('id', id)
-    fetchData()
-  }
-
   const toggleQuotationSelection = (quotationId: string) => {
     const newSelected = new Set(selectedQuotations)
     if (newSelected.has(quotationId)) {
@@ -143,47 +161,12 @@ export const Quotations = () => {
   const formatCurrency = (n: number) => n ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n) : '—'
   const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
 
-  const statusConfig: Record<string, { bg: string, text: string, icon: any }> = {
-    draft: { bg: 'bg-gray-100 text-gray-700', text: 'Draft', icon: Edit3 },
-    sent: { bg: 'bg-blue-100 text-blue-700', text: 'Sent', icon: Clock },
-    accepted: { bg: 'bg-emerald-100 text-emerald-700', text: 'Accepted', icon: Check },
-    rejected: { bg: 'bg-red-100 text-red-700', text: 'Rejected', icon: X },
-    revised: { bg: 'bg-amber-100 text-amber-700', text: 'Revised', icon: Edit3 },
-  }
-
+  // Summary counts using new statuses
   const totalQuoted = quotations.reduce((sum, q) => sum + (q.amount || 0), 0)
-  const totalAccepted = quotations.filter(q => q.status === 'accepted').reduce((sum, q) => sum + (q.amount || 0), 0)
-  const totalPending = quotations.filter(q => q.status === 'sent').reduce((sum, q) => sum + (q.amount || 0), 0)
-
-  const quotationFields: FieldDefinition[] = [
-    { 
-      name: 'project_id', 
-      label: 'Project', 
-      type: 'select',
-      options: [
-        { value: '', label: 'No project linked' },
-        ...projects.map(p => ({ value: p.id, label: p.name }))
-      ]
-    },
-    { name: 'quote_date', label: 'Quote Date', type: 'date', required: true },
-    { name: 'amount', label: 'Amount (₹)', type: 'number', required: true, placeholder: '150000' },
-    { name: 'description', label: 'Description', type: 'text', required: true, placeholder: 'e.g. 4C Web Portal - Add-on features' },
-    { 
-      name: 'status', 
-      label: 'Status', 
-      type: 'select', 
-      required: true,
-      options: [
-        { value: 'draft', label: 'Draft' },
-        { value: 'sent', label: 'Sent' },
-        { value: 'accepted', label: 'Accepted' },
-        { value: 'rejected', label: 'Rejected' },
-        { value: 'revised', label: 'Revised' }
-      ]
-    },
-    { name: 'quote_url', label: 'Quotation Document URL', type: 'url', placeholder: 'https://drive.google.com/...' },
-    { name: 'notes', label: 'Notes', type: 'textarea', placeholder: 'Any additional notes...', rows: 3 }
-  ]
+  const totalAccepted = quotations.filter(q => q.status === 'client_accepted').reduce((sum, q) => sum + (q.amount || 0), 0)
+  const totalPending = quotations.filter(q => q.status === 'bt_sent_to_client' || q.status === 'sent_to_bt').reduce((sum, q) => sum + (q.amount || 0), 0)
+  const acceptedCount = quotations.filter(q => q.status === 'client_accepted').length
+  const pendingCount = quotations.filter(q => q.status === 'bt_sent_to_client' || q.status === 'sent_to_bt').length
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
 
@@ -195,19 +178,37 @@ export const Quotations = () => {
           <h1 className="text-2xl font-bold text-slate-100">Quotations</h1>
           <p className="text-gray-500 text-sm mt-1">Track all quotes sent to Bettroi</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
+          {/* View Toggle */}
+          <div className="flex items-center bg-white border border-gray-300 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-emerald-600 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+              title="List view"
+            >
+              <LayoutList className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('card')}
+              className={`p-2 transition-colors ${viewMode === 'card' ? 'bg-emerald-600 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+              title="Card view"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
+
           {selectedQuotations.size > 0 && (
             <button
               onClick={() => setShowBulkDelete(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-gray-900 rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-medium transition-colors"
             >
               <Trash2 className="w-4 h-4" />
               Delete ({selectedQuotations.size})
             </button>
           )}
-          <button 
-            onClick={() => setShowAddForm(true)} 
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-gray-900 rounded-xl text-sm font-medium transition-colors"
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" /> New Quote
           </button>
@@ -222,14 +223,14 @@ export const Quotations = () => {
           <p className="text-xs text-gray-400 mt-1">{quotations.length} quotations</p>
         </div>
         <div className="bg-white/80 border border-gray-200 rounded-xl p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Accepted</p>
-          <p className="text-2xl font-bold text-emerald-400 mt-1">{formatCurrency(totalAccepted)}</p>
-          <p className="text-xs text-gray-400 mt-1">{quotations.filter(q => q.status === 'accepted').length} accepted</p>
+          <p className="text-xs text-gray-500 uppercase tracking-wide">Client Accepted</p>
+          <p className="text-2xl font-bold text-emerald-600 mt-1">{formatCurrency(totalAccepted)}</p>
+          <p className="text-xs text-gray-400 mt-1">{acceptedCount} accepted</p>
         </div>
         <div className="bg-white/80 border border-gray-200 rounded-xl p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Pending Response</p>
-          <p className="text-2xl font-bold text-blue-400 mt-1">{formatCurrency(totalPending)}</p>
-          <p className="text-xs text-gray-400 mt-1">{quotations.filter(q => q.status === 'sent').length} awaiting</p>
+          <p className="text-2xl font-bold text-blue-600 mt-1">{formatCurrency(totalPending)}</p>
+          <p className="text-xs text-gray-400 mt-1">{pendingCount} awaiting</p>
         </div>
       </div>
 
@@ -245,7 +246,7 @@ export const Quotations = () => {
             className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />
         </div>
-        
+
         <div className="flex gap-3">
           <select
             value={statusFilter}
@@ -253,13 +254,18 @@ export const Quotations = () => {
             className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
           >
             <option value="all">All Status</option>
+            <option value="sent_to_bt">Sent to BT</option>
+            <option value="bt_sent_to_client">BT Sent to Client</option>
+            <option value="client_accepted">Client Accepted – Go Ahead</option>
+            <option value="sent_to_bt_revision">Sent to BT – Needs Revision</option>
             <option value="draft">Draft</option>
-            <option value="sent">Sent</option>
-            <option value="accepted">Accepted</option>
-            <option value="rejected">Rejected</option>
-            <option value="revised">Revised</option>
+            <option value="rejected_by_client">Rejected by Client</option>
+            <option value="on_hold">On Hold</option>
+            <option value="client_revision">Client Requested Revision</option>
+            <option value="expired">Quote Expired</option>
+            <option value="negotiating">Under Negotiation</option>
           </select>
-          
+
           <select
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
@@ -278,138 +284,229 @@ export const Quotations = () => {
         </div>
       </div>
 
-      {/* Quotations Table */}
-      <div className="bg-white/80 border border-gray-200 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left">
-                  <button
-                    onClick={selectAllQuotations}
-                    className="text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    {selectedQuotations.size === filteredQuotations.length && filteredQuotations.length > 0 ? 
-                      <CheckSquare className="w-4 h-4" /> : 
-                      <Square className="w-4 h-4" />
-                    }
-                  </button>
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quotation</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredQuotations.length === 0 ? (
+      {/* ====== LIST VIEW ====== */}
+      {viewMode === 'list' && (
+        <div className="bg-white/80 border border-gray-200 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan={6} className="text-center py-12">
-                    <FileText className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-                    <p className="text-gray-500">
-                      {searchTerm || statusFilter !== 'all' ? 'No quotations match your filters' : 'No quotations found'}
-                    </p>
-                  </td>
+                  <th className="px-4 py-3 text-left">
+                    <button
+                      onClick={selectAllQuotations}
+                      className="text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      {selectedQuotations.size === filteredQuotations.length && filteredQuotations.length > 0 ?
+                        <CheckSquare className="w-4 h-4" /> :
+                        <Square className="w-4 h-4" />
+                      }
+                    </button>
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quotation</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
-              ) : filteredQuotations.map(q => {
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredQuotations.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-12">
+                      <FileText className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+                      <p className="text-gray-500">
+                        {searchTerm || statusFilter !== 'all' ? 'No quotations match your filters' : 'No quotations found'}
+                      </p>
+                    </td>
+                  </tr>
+                ) : filteredQuotations.map(q => {
+                  const sc = statusConfig[q.status] || statusConfig.draft
+                  const Icon = sc.icon
+                  return (
+                    <tr key={q.id} className="hover:bg-gray-100 transition-colors">
+                      <td className="px-4 py-4">
+                        <button
+                          onClick={() => toggleQuotationSelection(q.id)}
+                          className="text-gray-500 hover:text-gray-700 transition-colors"
+                        >
+                          {selectedQuotations.has(q.id) ?
+                            <CheckSquare className="w-4 h-4 text-emerald-500" /> :
+                            <Square className="w-4 h-4" />
+                          }
+                        </button>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-gray-900 font-semibold text-sm">{q.bettroi_projects?.name || 'Unlinked'}</h3>
+                            {q.quote_url && (
+                              <a
+                                href={q.quote_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-emerald-500 hover:text-emerald-700 transition-colors"
+                                title="View Document"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                          </div>
+                          {q.description && <p className="text-gray-600 text-sm mt-1">{q.description}</p>}
+                          {q.notes && <p className="text-gray-400 text-xs mt-1">{q.notes}</p>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${sc.bg}`}>
+                          <Icon className="w-3 h-3" /> {sc.text}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="text-lg font-bold text-gray-900">{formatCurrency(q.amount)}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-sm text-gray-500">{formatDate(q.quote_date)}</span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditingQuotation(q)}
+                            className="text-emerald-500 hover:text-emerald-700 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => duplicateQuotation(q)}
+                            className="text-blue-500 hover:text-blue-700 transition-colors"
+                            title="Duplicate"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeletingQuotation(q)}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ====== CARD VIEW ====== */}
+      {viewMode === 'card' && (
+        <div>
+          {filteredQuotations.length === 0 ? (
+            <div className="text-center py-16 bg-white/80 border border-gray-200 rounded-xl">
+              <FileText className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+              <p className="text-gray-500">
+                {searchTerm || statusFilter !== 'all' ? 'No quotations match your filters' : 'No quotations found'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredQuotations.map(q => {
                 const sc = statusConfig[q.status] || statusConfig.draft
                 const Icon = sc.icon
                 return (
-                  <tr key={q.id} className="hover:bg-gray-100 transition-colors">
-                    <td className="px-4 py-4">
+                  <div key={q.id} className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-md transition-shadow">
+                    {/* Top: checkbox + project name */}
+                    <div className="flex items-start justify-between gap-2">
                       <button
                         onClick={() => toggleQuotationSelection(q.id)}
-                        className="text-gray-500 hover:text-gray-700 transition-colors"
+                        className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 mt-0.5"
                       >
-                        {selectedQuotations.has(q.id) ? 
-                          <CheckSquare className="w-4 h-4 text-emerald-400" /> : 
+                        {selectedQuotations.has(q.id) ?
+                          <CheckSquare className="w-4 h-4 text-emerald-500" /> :
                           <Square className="w-4 h-4" />
                         }
                       </button>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-gray-900 font-semibold text-sm">{q.bettroi_projects?.name || 'Unlinked'}</h3>
-                          {q.quote_url && (
-                            <a
-                              href={q.quote_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-emerald-400 hover:text-emerald-700 transition-colors"
-                              title="View Document"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
-                        </div>
-                        {q.description && <p className="text-gray-600 text-sm mt-1">{q.description}</p>}
-                        {q.notes && <p className="text-gray-400 text-xs mt-1">{q.notes}</p>}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-gray-900 font-bold text-sm truncate">
+                          {q.bettroi_projects?.name || 'Unlinked'}
+                        </h3>
+                        {q.description && (
+                          <p className="text-gray-500 text-xs mt-0.5 line-clamp-2">{q.description}</p>
+                        )}
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${sc.bg}`}>
-                        <Icon className="w-3 h-3" /> {sc.text}
-                      </span>
-                      {q.status === 'sent' && (
-                        <div className="flex gap-1 mt-2">
-                          <button onClick={() => updateStatus(q.id, 'accepted')} className="px-2 py-1 bg-emerald-600/20 text-emerald-400 text-xs rounded hover:bg-emerald-600/30 transition-colors">✓ Accept</button>
-                          <button onClick={() => updateStatus(q.id, 'rejected')} className="px-2 py-1 bg-red-600/20 text-red-600 text-xs rounded hover:bg-red-600/30 transition-colors">✗ Reject</button>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-4">
-                      <p className="text-lg font-bold text-gray-900">{formatCurrency(q.amount)}</p>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="text-sm text-gray-500">{formatDate(q.quote_date)}</span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setEditingQuotation(q)}
-                          className="text-emerald-400 hover:text-emerald-700 transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => duplicateQuotation(q)}
-                          className="text-blue-400 hover:text-blue-700 transition-colors"
-                          title="Duplicate"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeletingQuotation(q)}
-                          className="text-red-600 hover:text-red-700 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                    </div>
+
+                    {/* Amount */}
+                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(q.amount)}</p>
+
+                    {/* Status badge */}
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full w-fit ${sc.bg}`}>
+                      <Icon className="w-3 h-3" /> {sc.text}
+                    </span>
+
+                    {/* Date */}
+                    <p className="text-xs text-gray-400">{formatDate(q.quote_date)}</p>
+
+                    {/* Quote URL */}
+                    {q.quote_url && (
+                      <a
+                        href={q.quote_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs text-emerald-600 hover:text-emerald-700 transition-colors truncate"
+                        title={q.quote_url}
+                      >
+                        <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{q.quote_url}</span>
+                      </a>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
+                      <button
+                        onClick={() => setEditingQuotation(q)}
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                        title="Edit"
+                      >
+                        <Edit2 className="w-3 h-3" /> Edit
+                      </button>
+                      <button
+                        onClick={() => duplicateQuotation(q)}
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        title="Duplicate"
+                      >
+                        <Copy className="w-3 h-3" /> Duplicate
+                      </button>
+                      <button
+                        onClick={() => setDeletingQuotation(q)}
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-red-500 hover:bg-red-50 rounded transition-colors ml-auto"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3 h-3" /> Delete
+                      </button>
+                    </div>
+                  </div>
                 )
               })}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Add/Edit Quotation Modal */}
-      <EditModal
+      <QuotationModal
         isOpen={showAddForm || !!editingQuotation}
         onClose={() => {
           setShowAddForm(false)
           setEditingQuotation(null)
         }}
         title={editingQuotation ? 'Edit Quotation' : 'Add New Quotation'}
-        fields={quotationFields}
-        initialData={editingQuotation || { 
-          quote_date: new Date().toISOString().split('T')[0], 
-          status: 'sent' 
+        projects={projects}
+        initialData={editingQuotation || {
+          quote_date: new Date().toISOString().split('T')[0],
+          status: 'sent_to_bt'
         }}
         onSave={editingQuotation ? updateQuotation : createQuotation}
       />

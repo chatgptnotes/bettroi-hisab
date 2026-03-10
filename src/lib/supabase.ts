@@ -44,7 +44,7 @@ export interface BettroiQuotation {
   quote_date: string
   amount: number
   description: string
-  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'revised'
+  status: 'sent_to_bt' | 'bt_sent_to_client' | 'client_accepted' | 'sent_to_bt_revision' | 'draft' | 'rejected_by_client' | 'on_hold' | 'client_revision' | 'expired' | 'negotiating' | 'sent' | 'accepted' | 'rejected' | 'revised'
   notes?: string
   quote_url?: string
   created_at: string

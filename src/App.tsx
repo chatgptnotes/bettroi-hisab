@@ -11,6 +11,7 @@ import { Reports } from './pages/Reports'
 import { Quotations } from './pages/Quotations'
 import { PendingPayments } from './pages/PendingPayments'
 import { Setup } from './pages/Setup'
+import { MeetingMinutes } from './pages/MeetingMinutes'
 
 function AppRoutes() {
   const { user, loading } = useAuth()
@@ -43,6 +44,7 @@ function AppRoutes() {
               <Route path="/quotations" element={<Quotations />} />
               <Route path="/pending" element={<PendingPayments />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/meetings" element={<MeetingMinutes />} />
             </Routes>
           </Layout>
         }
