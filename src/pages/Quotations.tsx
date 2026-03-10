@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import {
   FileText, Plus, Check, X, Clock, Edit3, ExternalLink, Search,
-  Edit2, Trash2, Copy, CheckSquare, Square, LayoutList, LayoutGrid
+  Edit2, Trash2, Copy, CheckSquare, Square, LayoutList, LayoutGrid,
+  LayoutTemplate, ClipboardList, Save
 } from 'lucide-react'
 import { supabase, type BettroiProject, type BettroiQuotation } from '../lib/supabase'
 import { QuotationModal } from '../components/QuotationModal'
@@ -39,9 +40,19 @@ export const Quotations = () => {
   const [editingQuotation, setEditingQuotation] = useState<BettroiQuotation | null>(null)
   const [deletingQuotation, setDeletingQuotation] = useState<BettroiQuotation | null>(null)
   const [showBulkDelete, setShowBulkDelete] = useState(false)
-  const [viewMode, setViewMode] = useState<'list' | 'card'>(() => {
-    return (localStorage.getItem('quotations-view') as 'list' | 'card') || 'list'
+  const [viewMode, setViewMode] = useState<'list' | 'card' | 'pipeline'>(() => {
+    return (localStorage.getItem('quotations-view') as 'list' | 'card' | 'pipeline') || 'list'
   })
+  const [creatingWorkOrderFrom, setCreatingWorkOrderFrom] = useState<BettroiQuotation | null>(null)
+  const [woTitle, setWoTitle] = useState('')
+  const [woProjectId, setWoProjectId] = useState('')
+  const [woAmount, setWoAmount] = useState('')
+  const [woStatus, setWoStatus] = useState('active')
+  const [woStartDate, setWoStartDate] = useState('')
+  const [woDueDate, setWoDueDate] = useState('')
+  const [woDescription, setWoDescription] = useState('')
+  const [woNotes, setWoNotes] = useState('')
+  const [woSaving, setWoSaving] = useState(false)
 
   useEffect(() => { fetchData() }, [])
 
@@ -52,6 +63,47 @@ export const Quotations = () => {
   useEffect(() => {
     localStorage.setItem('quotations-view', viewMode)
   }, [viewMode])
+
+  const openCreateWorkOrder = (q: BettroiQuotation) => {
+    setCreatingWorkOrderFrom(q)
+    setWoTitle(q.bettroi_projects?.name ? `${q.bettroi_projects.name} – Work Order` : 'Work Order')
+    setWoProjectId(q.project_id || '')
+    setWoAmount(q.amount?.toString() || '')
+    setWoStatus('active')
+    setWoStartDate(new Date().toISOString().split('T')[0])
+    setWoDueDate('')
+    setWoDescription(q.description || '')
+    setWoNotes(q.notes || '')
+  }
+
+  const handleCreateWorkOrder = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!creatingWorkOrderFrom) return
+    setWoSaving(true)
+    try {
+      await supabase.from('work_orders').insert({
+        quotation_id: creatingWorkOrderFrom.id,
+        project_id: woProjectId || null,
+        title: woTitle,
+        description: woDescription || null,
+        amount: Number(woAmount) || 0,
+        status: woStatus,
+        start_date: woStartDate || null,
+        due_date: woDueDate || null,
+        notes: woNotes || null,
+      })
+      setCreatingWorkOrderFrom(null)
+    } finally {
+      setWoSaving(false)
+    }
+  }
+
+  const daysAgo = (dateStr: string) => {
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24))
+    if (diff === 0) return 'Today'
+    if (diff === 1) return '1 day ago'
+    return `${diff} days ago`
+  }
 
   const fetchData = async () => {
     const { data: q } = await supabase.from('bettroi_quotations').select('*, bettroi_projects(name)').order('quote_date', { ascending: false })
@@ -194,6 +246,13 @@ export const Quotations = () => {
               title="Card view"
             >
               <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('pipeline')}
+              className={`p-2 transition-colors ${viewMode === 'pipeline' ? 'bg-emerald-600 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+              title="Pipeline view"
+            >
+              <LayoutTemplate className="w-4 h-4" />
             </button>
           </div>
 
@@ -368,6 +427,15 @@ export const Quotations = () => {
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2">
+                          {q.status === 'client_accepted' && (
+                            <button
+                              onClick={() => openCreateWorkOrder(q)}
+                              className="flex items-center gap-1 px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 rounded border border-indigo-200 transition-colors"
+                              title="Create Work Order"
+                            >
+                              <ClipboardList className="w-3 h-3" /> WO
+                            </button>
+                          )}
                           <button
                             onClick={() => setEditingQuotation(q)}
                             className="text-emerald-500 hover:text-emerald-700 transition-colors"
@@ -463,6 +531,19 @@ export const Quotations = () => {
                       </a>
                     )}
 
+                    {/* Added X days ago */}
+                    <p className="text-xs text-gray-400">Added {daysAgo(q.quote_date)}</p>
+
+                    {/* Create Work Order button for accepted quotes */}
+                    {q.status === 'client_accepted' && (
+                      <button
+                        onClick={() => openCreateWorkOrder(q)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-200 transition-colors w-full justify-center"
+                      >
+                        <ClipboardList className="w-3.5 h-3.5" /> Create Work Order
+                      </button>
+                    )}
+
                     {/* Actions */}
                     <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
                       <button
@@ -492,6 +573,64 @@ export const Quotations = () => {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ====== PIPELINE VIEW ====== */}
+      {viewMode === 'pipeline' && (
+        <div className="overflow-x-auto pb-4">
+          <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+            {[
+              { key: 'draft',               label: 'Draft',                      color: 'bg-gray-100 text-gray-700',    border: 'border-gray-300' },
+              { key: 'sent_to_bt',          label: 'Sent to BT',                 color: 'bg-indigo-100 text-indigo-700', border: 'border-indigo-300' },
+              { key: 'bt_sent_to_client',   label: 'BT Sent to Client',          color: 'bg-blue-100 text-blue-700',    border: 'border-blue-300' },
+              { key: 'client_accepted',     label: 'Client Accepted',            color: 'bg-emerald-100 text-emerald-700', border: 'border-emerald-300' },
+              { key: 'sent_to_bt_revision', label: 'Needs Revision',             color: 'bg-amber-100 text-amber-700',  border: 'border-amber-300' },
+              { key: 'negotiating',         label: 'Under Negotiation',          color: 'bg-purple-100 text-purple-700', border: 'border-purple-300' },
+              { key: 'on_hold',             label: 'On Hold',                    color: 'bg-slate-100 text-slate-700',  border: 'border-slate-300' },
+              { key: 'client_revision',     label: 'Client Revision',            color: 'bg-orange-100 text-orange-700', border: 'border-orange-300' },
+              { key: 'rejected_by_client',  label: 'Rejected',                   color: 'bg-red-100 text-red-700',      border: 'border-red-300' },
+              { key: 'expired',             label: 'Expired',                    color: 'bg-rose-100 text-rose-700',    border: 'border-rose-300' },
+            ].map(col => {
+              const colQuotations = filteredQuotations.filter(q => q.status === col.key)
+              const colTotal = colQuotations.reduce((s, q) => s + (q.amount || 0), 0)
+              return (
+                <div key={col.key} className={`flex-shrink-0 w-56 bg-white border rounded-xl overflow-hidden ${col.border}`} style={{ minWidth: '220px' }}>
+                  {/* Column header */}
+                  <div className={`px-3 py-2 ${col.color} border-b ${col.border}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold">{col.label}</span>
+                      <span className="text-xs font-bold bg-white bg-opacity-60 rounded-full px-1.5 py-0.5">
+                        {colQuotations.length}
+                      </span>
+                    </div>
+                    {colTotal > 0 && (
+                      <p className="text-xs font-medium mt-0.5 opacity-80">
+                        {formatCurrency(colTotal)}
+                      </p>
+                    )}
+                  </div>
+                  {/* Cards */}
+                  <div className="p-2 space-y-2 min-h-[120px]">
+                    {colQuotations.length === 0 ? (
+                      <p className="text-xs text-gray-400 text-center py-6">Empty</p>
+                    ) : colQuotations.map(q => (
+                      <div key={q.id} className="bg-gray-50 border border-gray-200 rounded-lg p-2.5 hover:shadow-sm transition-shadow">
+                        <p className="text-gray-900 font-semibold text-xs truncate">
+                          {q.bettroi_projects?.name || 'Unlinked'}
+                        </p>
+                        {q.description && (
+                          <p className="text-gray-500 text-xs mt-0.5 line-clamp-2">{q.description}</p>
+                        )}
+                        <p className="text-gray-900 font-bold text-sm mt-1.5">{formatCurrency(q.amount)}</p>
+                        <p className="text-gray-400 text-xs mt-1">{formatDate(q.quote_date)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
@@ -532,6 +671,141 @@ export const Quotations = () => {
         confirmText="Delete All"
         type="danger"
       />
+
+      {/* Create Work Order Modal */}
+      {creatingWorkOrderFrom && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setCreatingWorkOrderFrom(null)} />
+            <div className="relative bg-white border border-gray-200 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Create Work Order</h2>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    From quotation: {creatingWorkOrderFrom.description || creatingWorkOrderFrom.bettroi_projects?.name}
+                  </p>
+                </div>
+                <button onClick={() => setCreatingWorkOrderFrom(null)} className="text-gray-400 hover:text-gray-600">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateWorkOrder} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Title <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    value={woTitle}
+                    onChange={e => setWoTitle(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">Project</label>
+                    <select
+                      value={woProjectId}
+                      onChange={e => setWoProjectId(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="">No project</option>
+                      {projects.map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">Status</label>
+                    <select
+                      value={woStatus}
+                      onChange={e => setWoStatus(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="active">Active</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="completed">Completed</option>
+                      <option value="on_hold">On Hold</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Amount (INR)</label>
+                  <input
+                    type="number"
+                    value={woAmount}
+                    onChange={e => setWoAmount(e.target.value)}
+                    min="0"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">Start Date</label>
+                    <input
+                      type="date"
+                      value={woStartDate}
+                      onChange={e => setWoStartDate(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">Due Date</label>
+                    <input
+                      type="date"
+                      value={woDueDate}
+                      onChange={e => setWoDueDate(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={woDescription}
+                    onChange={e => setWoDescription(e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Notes</label>
+                  <textarea
+                    value={woNotes}
+                    onChange={e => setWoNotes(e.target.value)}
+                    rows={2}
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 resize-none"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={woSaving}
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <Save className="w-4 h-4" />
+                    {woSaving ? 'Creating...' : 'Create Work Order'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreatingWorkOrderFrom(null)}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

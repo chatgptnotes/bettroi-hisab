@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { TrendingUp, Download, Calendar, FileText, Filter, Search, Printer } from 'lucide-react'
+import { TrendingUp, Download, Calendar, FileText, Filter, Search, Printer, Target } from 'lucide-react'
 import { supabase, type BettroiProject, type BettroiTransaction } from '../lib/supabase'
 
 interface MonthlyData {
@@ -24,11 +24,26 @@ interface AgingData {
   color: string
 }
 
+interface PipelineAnalytics {
+  winRate: number
+  totalPipelineValue: number
+  avgDealSize: number
+  totalQuotations: number
+  acceptedCount: number
+  sentToBtCount: number
+  btSentToClientCount: number
+  clientAcceptedCount: number
+  sentToBtPct: number
+  btSentToClientPct: number
+  clientAcceptedPct: number
+}
+
 export const Reports = () => {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
   const [projectData, setProjectData] = useState<ProjectData[]>([])
   const [agingData, setAgingData] = useState<AgingData[]>([])
   const [allTransactions, setAllTransactions] = useState<BettroiTransaction[]>([])
+  const [pipelineAnalytics, setPipelineAnalytics] = useState<PipelineAnalytics | null>(null)
 
   const [summaryStats, setSummaryStats] = useState({
     totalProjects: 0,
@@ -65,12 +80,51 @@ export const Reports = () => {
           bettroi_projects(name, total_value)
         `)
 
+      const { data: quotations } = await supabase
+        .from('bettroi_quotations')
+        .select('id, status, amount')
+
       if (!projects || !transactions) return
 
       setProjects(projects)
       setAllTransactions(transactions)
 
       generateReportData(projects, transactions)
+
+      // Pipeline analytics
+      if (quotations && quotations.length > 0) {
+        const nonDraft = quotations.filter(q => q.status !== 'draft')
+        const accepted = quotations.filter(q => q.status === 'client_accepted')
+        const winRate = nonDraft.length > 0 ? (accepted.length / nonDraft.length) * 100 : 0
+
+        const notRejectedOrExpired = quotations.filter(
+          q => q.status !== 'rejected_by_client' && q.status !== 'expired' && q.status !== 'draft'
+        )
+        const totalPipelineValue = notRejectedOrExpired.reduce((s, q) => s + (q.amount || 0), 0)
+        const avgDealSize = quotations.length > 0
+          ? quotations.reduce((s, q) => s + (q.amount || 0), 0) / quotations.length
+          : 0
+
+        const sentToBtCount = quotations.filter(q => q.status === 'sent_to_bt').length
+        const btSentToClientCount = quotations.filter(q => q.status === 'bt_sent_to_client').length
+        const clientAcceptedCount = accepted.length
+
+        const totalForFunnel = quotations.length || 1
+        setPipelineAnalytics({
+          winRate,
+          totalPipelineValue,
+          avgDealSize,
+          totalQuotations: quotations.length,
+          acceptedCount: accepted.length,
+          sentToBtCount,
+          btSentToClientCount,
+          clientAcceptedCount,
+          sentToBtPct: (sentToBtCount / totalForFunnel) * 100,
+          btSentToClientPct: (btSentToClientCount / totalForFunnel) * 100,
+          clientAcceptedPct: (clientAcceptedCount / totalForFunnel) * 100,
+        })
+      }
+
       setLoading(false)
     } catch (error) {
       console.error('Error fetching report data:', error)
@@ -333,6 +387,67 @@ export const Reports = () => {
           </button>
         </div>
       </div>
+
+      {/* Proposal Pipeline Analytics */}
+      {pipelineAnalytics && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <Target className="h-5 w-5 text-emerald-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Proposal Pipeline Analytics</h2>
+          </div>
+
+          {/* Stat Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+              <p className="text-xs text-emerald-600 uppercase tracking-wide font-medium">Win Rate</p>
+              <p className="text-3xl font-bold text-emerald-700 mt-1">{pipelineAnalytics.winRate.toFixed(1)}%</p>
+              <p className="text-xs text-emerald-600 mt-1">
+                {pipelineAnalytics.acceptedCount} of {pipelineAnalytics.totalQuotations - (pipelineAnalytics.totalQuotations - pipelineAnalytics.sentToBtCount - pipelineAnalytics.btSentToClientCount - pipelineAnalytics.clientAcceptedCount)} non-draft
+              </p>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <p className="text-xs text-blue-600 uppercase tracking-wide font-medium">Pipeline Value</p>
+              <p className="text-xl font-bold text-blue-700 mt-1">{formatCurrency(pipelineAnalytics.totalPipelineValue)}</p>
+              <p className="text-xs text-blue-600 mt-1">excl. rejected & expired</p>
+            </div>
+            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+              <p className="text-xs text-indigo-600 uppercase tracking-wide font-medium">Avg Deal Size</p>
+              <p className="text-xl font-bold text-indigo-700 mt-1">{formatCurrency(pipelineAnalytics.avgDealSize)}</p>
+              <p className="text-xs text-indigo-600 mt-1">{pipelineAnalytics.totalQuotations} total quotes</p>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="text-xs text-amber-600 uppercase tracking-wide font-medium">Accepted</p>
+              <p className="text-3xl font-bold text-amber-700 mt-1">{pipelineAnalytics.clientAcceptedCount}</p>
+              <p className="text-xs text-amber-600 mt-1">client go-aheads</p>
+            </div>
+          </div>
+
+          {/* Conversion Funnel */}
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-3">Conversion Funnel</p>
+            <div className="space-y-3">
+              {[
+                { label: 'Sent to BT', count: pipelineAnalytics.sentToBtCount, pct: pipelineAnalytics.sentToBtPct, color: 'bg-indigo-500' },
+                { label: 'BT Sent to Client', count: pipelineAnalytics.btSentToClientCount, pct: pipelineAnalytics.btSentToClientPct, color: 'bg-blue-500' },
+                { label: 'Client Accepted', count: pipelineAnalytics.clientAcceptedCount, pct: pipelineAnalytics.clientAcceptedPct, color: 'bg-emerald-500' },
+              ].map(stage => (
+                <div key={stage.label} className="flex items-center gap-3">
+                  <div className="w-32 text-xs text-gray-600 flex-shrink-0">{stage.label}</div>
+                  <div className="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
+                    <div
+                      className={`h-5 rounded-full ${stage.color} flex items-center pl-2 transition-all`}
+                      style={{ width: `${Math.max(stage.pct, 3)}%` }}
+                    >
+                      <span className="text-white text-xs font-medium">{stage.count}</span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500 w-10 text-right">{stage.pct.toFixed(0)}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-4 no-print">

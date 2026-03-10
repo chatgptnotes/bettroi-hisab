@@ -9,7 +9,8 @@ import {
   Calculator,
   Clock,
   LogOut,
-  MessageSquare
+  MessageSquare,
+  ClipboardList
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -28,6 +29,7 @@ export const Layout = ({ children }: LayoutProps) => {
     { to: '/pending', icon: Clock, label: 'Pending' },
     { to: '/reports', icon: BarChart3, label: 'Reports' },
     { to: '/meetings', icon: MessageSquare, label: 'Meetings' },
+    { to: '/work-orders', icon: ClipboardList, label: 'Work Orders' },
   ]
 
   return (
