@@ -13,16 +13,11 @@ interface QuotationModalProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'sent_to_bt', label: 'Sent to BT' },
-  { value: 'bt_sent_to_client', label: 'BT Sent to Client' },
-  { value: 'client_accepted', label: 'Client Accepted – Go Ahead' },
-  { value: 'sent_to_bt_revision', label: 'Sent to BT – Needs Revision' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'rejected_by_client', label: 'Rejected by Client' },
-  { value: 'on_hold', label: 'On Hold' },
-  { value: 'client_revision', label: 'Client Requested Revision' },
-  { value: 'expired', label: 'Quote Expired' },
-  { value: 'negotiating', label: 'Under Negotiation' },
+  { value: 'sent',     label: 'Sent to BT' },
+  { value: 'accepted', label: 'Client Accepted – Go Ahead' },
+  { value: 'revised',  label: 'Sent to BT – Needs Revision' },
+  { value: 'draft',    label: 'Draft' },
+  { value: 'rejected', label: 'Rejected by Client' },
 ]
 
 export const QuotationModal = ({

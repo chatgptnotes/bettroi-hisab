@@ -9,22 +9,22 @@ import { QuotationModal } from '../components/QuotationModal'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 
 const statusConfig: Record<string, { bg: string; text: string; icon: any }> = {
-  sent_to_bt:          { bg: 'bg-indigo-100 text-indigo-700',  text: 'Sent to BT',                    icon: Clock },
-  bt_sent_to_client:   { bg: 'bg-blue-100 text-blue-700',      text: 'BT Sent to Client',              icon: Clock },
-  client_accepted:     { bg: 'bg-emerald-100 text-emerald-700',text: 'Client Accepted – Go Ahead',     icon: Check },
-  sent_to_bt_revision: { bg: 'bg-amber-100 text-amber-700',    text: 'Sent to BT – Needs Revision',   icon: Edit3 },
-  draft:               { bg: 'bg-gray-100 text-gray-700',      text: 'Draft',                          icon: Edit3 },
-  rejected_by_client:  { bg: 'bg-red-100 text-red-700',        text: 'Rejected by Client',             icon: X },
-  on_hold:             { bg: 'bg-slate-100 text-slate-700',    text: 'On Hold',                        icon: Clock },
-  client_revision:     { bg: 'bg-orange-100 text-orange-700',  text: 'Client Requested Revision',      icon: Edit3 },
-  expired:             { bg: 'bg-rose-100 text-rose-700',      text: 'Quote Expired',                  icon: X },
-  negotiating:         { bg: 'bg-purple-100 text-purple-700',  text: 'Under Negotiation',              icon: Clock },
-  // legacy fallbacks
-  sent:     { bg: 'bg-blue-100 text-blue-700',    text: 'Sent',     icon: Clock },
-  accepted: { bg: 'bg-emerald-100 text-emerald-700', text: 'Accepted', icon: Check },
-  rejected: { bg: 'bg-red-100 text-red-700',      text: 'Rejected', icon: X },
-  revised:  { bg: 'bg-amber-100 text-amber-700',  text: 'Revised',  icon: Edit3 },
+  // Current DB values mapped to descriptive labels
+  draft:    { bg: 'bg-gray-100 text-gray-700',        text: 'Draft',                        icon: Edit3 },
+  sent:     { bg: 'bg-indigo-100 text-indigo-700',    text: 'Sent to BT',                   icon: Clock },
+  accepted: { bg: 'bg-emerald-100 text-emerald-700',  text: 'Client Accepted – Go Ahead',   icon: Check },
+  rejected: { bg: 'bg-red-100 text-red-700',          text: 'Rejected by Client',            icon: X },
+  revised:  { bg: 'bg-amber-100 text-amber-700',      text: 'Sent to BT – Needs Revision',  icon: Edit3 },
 }
+
+// Kanban column definitions — each maps to one or more DB status values
+const PIPELINE_COLUMNS = [
+  { keys: ['draft'],             label: 'Draft',                color: 'bg-gray-100 text-gray-700',     border: 'border-gray-300' },
+  { keys: ['sent'],              label: 'Sent to BT',           color: 'bg-indigo-100 text-indigo-700', border: 'border-indigo-300' },
+  { keys: ['accepted'],          label: 'Client Accepted',      color: 'bg-emerald-100 text-emerald-700', border: 'border-emerald-300' },
+  { keys: ['revised'],           label: 'Needs Revision',       color: 'bg-amber-100 text-amber-700',   border: 'border-amber-300' },
+  { keys: ['rejected'],          label: 'Rejected',             color: 'bg-red-100 text-red-700',       border: 'border-red-300' },
+]
 
 export const Quotations = () => {
   const [quotations, setQuotations] = useState<BettroiQuotation[]>([])
@@ -215,10 +215,10 @@ export const Quotations = () => {
 
   // Summary counts using new statuses
   const totalQuoted = quotations.reduce((sum, q) => sum + (q.amount || 0), 0)
-  const totalAccepted = quotations.filter(q => q.status === 'client_accepted').reduce((sum, q) => sum + (q.amount || 0), 0)
-  const totalPending = quotations.filter(q => q.status === 'bt_sent_to_client' || q.status === 'sent_to_bt').reduce((sum, q) => sum + (q.amount || 0), 0)
-  const acceptedCount = quotations.filter(q => q.status === 'client_accepted').length
-  const pendingCount = quotations.filter(q => q.status === 'bt_sent_to_client' || q.status === 'sent_to_bt').length
+  const totalAccepted = quotations.filter(q => q.status === 'accepted').reduce((sum, q) => sum + (q.amount || 0), 0)
+  const totalPending = quotations.filter(q => q.status === 'sent').reduce((sum, q) => sum + (q.amount || 0), 0)
+  const acceptedCount = quotations.filter(q => q.status === 'accepted').length
+  const pendingCount = quotations.filter(q => q.status === 'sent').length
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
 
@@ -313,16 +313,11 @@ export const Quotations = () => {
             className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500"
           >
             <option value="all">All Status</option>
-            <option value="sent_to_bt">Sent to BT</option>
-            <option value="bt_sent_to_client">BT Sent to Client</option>
-            <option value="client_accepted">Client Accepted – Go Ahead</option>
-            <option value="sent_to_bt_revision">Sent to BT – Needs Revision</option>
+            <option value="sent">Sent to BT</option>
+            <option value="accepted">Client Accepted – Go Ahead</option>
+            <option value="revised">Sent to BT – Needs Revision</option>
             <option value="draft">Draft</option>
-            <option value="rejected_by_client">Rejected by Client</option>
-            <option value="on_hold">On Hold</option>
-            <option value="client_revision">Client Requested Revision</option>
-            <option value="expired">Quote Expired</option>
-            <option value="negotiating">Under Negotiation</option>
+            <option value="rejected">Rejected by Client</option>
           </select>
 
           <select
@@ -427,7 +422,7 @@ export const Quotations = () => {
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2">
-                          {q.status === 'client_accepted' && (
+                          {q.status === 'accepted' && (
                             <button
                               onClick={() => openCreateWorkOrder(q)}
                               className="flex items-center gap-1 px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 rounded border border-indigo-200 transition-colors"
@@ -535,7 +530,7 @@ export const Quotations = () => {
                     <p className="text-xs text-gray-400">Added {daysAgo(q.quote_date)}</p>
 
                     {/* Create Work Order button for accepted quotes */}
-                    {q.status === 'client_accepted' && (
+                    {q.status === 'accepted' && (
                       <button
                         onClick={() => openCreateWorkOrder(q)}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-200 transition-colors w-full justify-center"
@@ -580,22 +575,11 @@ export const Quotations = () => {
       {viewMode === 'pipeline' && (
         <div className="overflow-x-auto pb-4">
           <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
-            {[
-              { key: 'draft',               label: 'Draft',                      color: 'bg-gray-100 text-gray-700',    border: 'border-gray-300' },
-              { key: 'sent_to_bt',          label: 'Sent to BT',                 color: 'bg-indigo-100 text-indigo-700', border: 'border-indigo-300' },
-              { key: 'bt_sent_to_client',   label: 'BT Sent to Client',          color: 'bg-blue-100 text-blue-700',    border: 'border-blue-300' },
-              { key: 'client_accepted',     label: 'Client Accepted',            color: 'bg-emerald-100 text-emerald-700', border: 'border-emerald-300' },
-              { key: 'sent_to_bt_revision', label: 'Needs Revision',             color: 'bg-amber-100 text-amber-700',  border: 'border-amber-300' },
-              { key: 'negotiating',         label: 'Under Negotiation',          color: 'bg-purple-100 text-purple-700', border: 'border-purple-300' },
-              { key: 'on_hold',             label: 'On Hold',                    color: 'bg-slate-100 text-slate-700',  border: 'border-slate-300' },
-              { key: 'client_revision',     label: 'Client Revision',            color: 'bg-orange-100 text-orange-700', border: 'border-orange-300' },
-              { key: 'rejected_by_client',  label: 'Rejected',                   color: 'bg-red-100 text-red-700',      border: 'border-red-300' },
-              { key: 'expired',             label: 'Expired',                    color: 'bg-rose-100 text-rose-700',    border: 'border-rose-300' },
-            ].map(col => {
-              const colQuotations = filteredQuotations.filter(q => q.status === col.key)
+            {PIPELINE_COLUMNS.map(col => {
+              const colQuotations = filteredQuotations.filter(q => col.keys.includes(q.status))
               const colTotal = colQuotations.reduce((s, q) => s + (q.amount || 0), 0)
               return (
-                <div key={col.key} className={`flex-shrink-0 w-56 bg-white border rounded-xl overflow-hidden ${col.border}`} style={{ minWidth: '220px' }}>
+                <div key={col.keys[0]} className={`flex-shrink-0 w-56 bg-white border rounded-xl overflow-hidden ${col.border}`} style={{ minWidth: '220px' }}>
                   {/* Column header */}
                   <div className={`px-3 py-2 ${col.color} border-b ${col.border}`}>
                     <div className="flex items-center justify-between">
@@ -645,7 +629,7 @@ export const Quotations = () => {
         projects={projects}
         initialData={editingQuotation || {
           quote_date: new Date().toISOString().split('T')[0],
-          status: 'sent_to_bt'
+          status: 'sent'
         }}
         onSave={editingQuotation ? updateQuotation : createQuotation}
       />
