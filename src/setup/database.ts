@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 
 export const setupDatabase = async () => {
-  console.log('Setting up Bettroi Hisab database...')
+  console.log('Setting up Hisab database...')
 
   try {
     // Create projects

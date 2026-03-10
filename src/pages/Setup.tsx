@@ -32,7 +32,7 @@ export const Setup = () => {
           <Database className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Database Setup</h1>
           <p className="text-gray-500 mb-6">
-            Initialize the Bettroi Hisab database with sample projects and transactions.
+            Initialize the Hisab database with sample projects and transactions.
           </p>
 
           {status === 'idle' && (
