@@ -7,14 +7,17 @@ import {
   BarChart3,
   FileText,
   Calculator,
-  Clock
+  Clock,
+  LogOut
 } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 
 interface LayoutProps {
   children: React.ReactNode
 }
 
 export const Layout = ({ children }: LayoutProps) => {
+  const { user, signOut } = useAuth()
   const navLinks = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/projects', icon: FolderOpen, label: 'Projects' },
@@ -35,8 +38,16 @@ export const Layout = ({ children }: LayoutProps) => {
               <Calculator className="h-8 w-8 text-emerald-600" />
               <h1 className="text-xl font-bold text-gray-900">Bettroi Hisab</h1>
             </div>
-            <div className="text-sm text-gray-500">
-              Account Tracker
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-gray-500 hidden sm:block">{user?.email}</span>
+              <button
+                onClick={signOut}
+                className="flex items-center space-x-1 text-sm text-gray-500 hover:text-red-600 transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:block">Sign out</span>
+              </button>
             </div>
           </div>
         </div>
