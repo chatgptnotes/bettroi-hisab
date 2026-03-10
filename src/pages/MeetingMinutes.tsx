@@ -20,7 +20,7 @@ import {
   Plus, X, Save, Upload, Sparkles, FileText, Loader2,
   LayoutList, LayoutGrid, Calendar, ExternalLink, Trash2, Edit2
 } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseStorage } from '../lib/supabase'
 
 interface MeetingMinuteEntry {
   id: string
@@ -227,11 +227,11 @@ const EntryModal = ({
   const handleFileUpload = async (file: File) => {
     setUploading(true)
     try {
-      const { data, error } = await supabase.storage
+      const { data, error } = await supabaseStorage.storage
         .from('meeting-docs')
         .upload(`${Date.now()}-${file.name}`, file, { upsert: true })
       if (error) throw error
-      const { data: { publicUrl } } = supabase.storage.from('meeting-docs').getPublicUrl(data!.path)
+      const { data: { publicUrl } } = supabaseStorage.storage.from('meeting-docs').getPublicUrl(data!.path)
       setFileUrl(publicUrl)
       setUploadedFileName(file.name)
     } catch (err) {

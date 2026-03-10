@@ -2,8 +2,12 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = 'https://bvaefzcsgtgqwftczixb.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2YWVmemNzZ3RncXdmdGN6aXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2ODU0ODIsImV4cCI6MjA4NzI2MTQ4Mn0.Q-AxSMpO6lKogtR_m0j2CvpzdRiDpZiKebR8XCPq1Nc'
+const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2YWVmemNzZ3RncXdmdGN6aXhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTY4NTQ4MiwiZXhwIjoyMDg3MjYxNDgyfQ.C3krrdQbECp6CR-_RjPuX6Rogl2m-W7sohRwNFya_Bc'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Storage client with service role — used only for file uploads in this internal tool
+export const supabaseStorage = createClient(supabaseUrl, supabaseServiceKey)
 
 // Database types
 export interface BettroiProject {
