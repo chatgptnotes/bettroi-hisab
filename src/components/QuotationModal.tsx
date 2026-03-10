@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Save, Upload, Sparkles, FileText, Loader2 } from 'lucide-react'
-import { supabase, supabaseStorage } from '../lib/supabase'
+import { supabaseStorage } from '../lib/supabase'
 import type { BettroiProject } from '../lib/supabase'
 
 interface QuotationModalProps {
