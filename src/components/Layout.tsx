@@ -36,7 +36,7 @@ export const Layout = ({ children }: LayoutProps) => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2">
               <Calculator className="h-8 w-8 text-emerald-600" />
-              <h1 className="text-xl font-bold text-gray-900">Bettroi Hisab</h1>
+              <h1 className="text-xl font-bold text-gray-900">Hisab</h1>
             </div>
             <div className="flex items-center space-x-3">
               <span className="text-sm text-gray-500 hidden sm:block">{user?.email}</span>
