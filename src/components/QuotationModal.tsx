@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Save, Upload, Sparkles, FileText, Loader2 } from 'lucide-react'
-import { supabaseStorage } from '../lib/supabase'
+import { uploadToStorage } from '../lib/supabase'
 import type { BettroiProject } from '../lib/supabase'
 
 interface QuotationModalProps {
@@ -62,15 +62,8 @@ export const QuotationModal = ({
     if (!file) return
     setUploading(true)
     try {
-      const { data, error } = await supabaseStorage.storage
-        .from('quotation-docs')
-        .upload(`${Date.now()}-${file.name}`, file, { upsert: true })
-
-      if (error) throw error
-
-      const { data: { publicUrl } } = supabaseStorage.storage
-        .from('quotation-docs')
-        .getPublicUrl(data!.path)
+      const filePath = `${Date.now()}-${file.name}`
+      const { publicUrl } = await uploadToStorage('quotation-docs', filePath, file)
 
       setFormData(prev => ({ ...prev, quote_url: publicUrl }))
       setUploadedFileName(file.name)

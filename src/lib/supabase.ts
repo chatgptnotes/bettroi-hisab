@@ -6,8 +6,49 @@ const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Storage client with service role — used only for file uploads in this internal tool
-export const supabaseStorage = createClient(supabaseUrl, supabaseServiceKey)
+// Direct storage upload using fetch — bypasses Supabase JS client auth session issues entirely
+export async function uploadToStorage(bucket: string, path: string, file: File | Blob) {
+  const res = await fetch(
+    `${supabaseUrl}/storage/v1/object/${bucket}/${encodeURIComponent(path)}`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${supabaseServiceKey}`,
+        apikey: supabaseServiceKey,
+        'x-upsert': 'true',
+      },
+      body: file,
+    }
+  )
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: res.statusText }))
+    throw new Error(err.message || 'Upload failed')
+  }
+  const data = await res.json()
+  const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`
+  return { path: data.Key || `${bucket}/${path}`, publicUrl }
+}
+
+// Direct storage delete using fetch
+export async function deleteFromStorage(bucket: string, paths: string[]) {
+  const res = await fetch(
+    `${supabaseUrl}/storage/v1/object/${bucket}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${supabaseServiceKey}`,
+        apikey: supabaseServiceKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prefixes: paths }),
+    }
+  )
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: res.statusText }))
+    throw new Error(err.message || 'Delete failed')
+  }
+  return res.json()
+}
 
 // Database types
 export interface BettroiProject {

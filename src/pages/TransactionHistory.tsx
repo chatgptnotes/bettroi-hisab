@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { Filter, Search, Edit2, Trash2, Plus, CheckSquare, Square, ExternalLink, Upload, Download, Paperclip, Link, FileText, X, Eye } from 'lucide-react'
-import { supabase, supabaseStorage, type BettroiTransaction, type BettroiProject, type TransactionDocument } from '../lib/supabase'
+import { supabase, uploadToStorage, deleteFromStorage, type BettroiTransaction, type BettroiProject, type TransactionDocument } from '../lib/supabase'
 import { EditModal, type FieldDefinition } from '../components/EditModal'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 
@@ -162,24 +162,11 @@ export const TransactionHistory = () => {
     try {
       const path = `${txId}/${Date.now()}-${file.name}`
       
-      const { error: uploadError } = await supabaseStorage.storage
-        .from('receipts')
-        .upload(path, file, { contentType: file.type })
-      
-      if (uploadError) {
-        console.error('Upload error:', uploadError)
-        alert('Upload failed: ' + uploadError.message)
-        setUploadingDoc(false)
-        return
-      }
-
-      const { data: urlData } = supabaseStorage.storage
-        .from('receipts')
-        .getPublicUrl(path)
+      const { publicUrl } = await uploadToStorage('receipts', path, file)
 
       const newDoc: TransactionDocument = {
         name: file.name,
-        url: urlData.publicUrl,
+        url: publicUrl,
         type: 'upload',
         mime: file.type,
         uploadedAt: new Date().toISOString()
@@ -217,7 +204,7 @@ export const TransactionHistory = () => {
     if (doc.type === 'upload') {
       const path = doc.url.split('/receipts/')[1]
       if (path) {
-        await supabaseStorage.storage.from('receipts').remove([decodeURIComponent(path)])
+        await deleteFromStorage('receipts', [decodeURIComponent(path)])
       }
     }
     
