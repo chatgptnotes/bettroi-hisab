@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { TrendingUp, TrendingDown, Clock, DollarSign, Upload, Paperclip, Eye, Download, Trash2, X, FileText, Link, MessageSquare } from 'lucide-react'
-import { supabase, type TransactionDocument } from '../lib/supabase'
+import { supabase, supabaseStorage, type TransactionDocument } from '../lib/supabase'
 
 interface DashboardStats {
   totalBilled: number
@@ -91,9 +91,9 @@ export const Dashboard = () => {
     setUploadingDoc(true)
     try {
       const path = `${txId}/${Date.now()}-${file.name}`
-      const { error: uploadError } = await supabase.storage.from('receipts').upload(path, file, { contentType: file.type })
+      const { error: uploadError } = await supabaseStorage.storage.from('receipts').upload(path, file, { contentType: file.type })
       if (uploadError) { alert('Upload failed: ' + uploadError.message); setUploadingDoc(false); return }
-      const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(path)
+      const { data: urlData } = supabaseStorage.storage.from('receipts').getPublicUrl(path)
       const newDoc: TransactionDocument = { name: file.name, url: urlData.publicUrl, type: 'upload', mime: file.type, uploadedAt: new Date().toISOString() }
       const docs = [...getTransactionDocs(txId), newDoc]
       await supabase.from('bettroi_transactions').update({ documents: docs }).eq('id', txId)
@@ -116,7 +116,7 @@ export const Dashboard = () => {
     const doc = docs[docIndex]
     if (doc.type === 'upload') {
       const path = doc.url.split('/receipts/')[1]
-      if (path) await supabase.storage.from('receipts').remove([decodeURIComponent(path)])
+      if (path) await supabaseStorage.storage.from('receipts').remove([decodeURIComponent(path)])
     }
     const newDocs = docs.filter((_: any, i: number) => i !== docIndex)
     await supabase.from('bettroi_transactions').update({ documents: newDocs }).eq('id', txId)

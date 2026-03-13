@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { Filter, Search, Edit2, Trash2, Plus, CheckSquare, Square, ExternalLink, Upload, Download, Paperclip, Link, FileText, X, Eye } from 'lucide-react'
-import { supabase, type BettroiTransaction, type BettroiProject, type TransactionDocument } from '../lib/supabase'
+import { supabase, supabaseStorage, type BettroiTransaction, type BettroiProject, type TransactionDocument } from '../lib/supabase'
 import { EditModal, type FieldDefinition } from '../components/EditModal'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 
@@ -162,7 +162,7 @@ export const TransactionHistory = () => {
     try {
       const path = `${txId}/${Date.now()}-${file.name}`
       
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabaseStorage.storage
         .from('receipts')
         .upload(path, file, { contentType: file.type })
       
@@ -173,7 +173,7 @@ export const TransactionHistory = () => {
         return
       }
 
-      const { data: urlData } = supabase.storage
+      const { data: urlData } = supabaseStorage.storage
         .from('receipts')
         .getPublicUrl(path)
 
@@ -217,7 +217,7 @@ export const TransactionHistory = () => {
     if (doc.type === 'upload') {
       const path = doc.url.split('/receipts/')[1]
       if (path) {
-        await supabase.storage.from('receipts').remove([decodeURIComponent(path)])
+        await supabaseStorage.storage.from('receipts').remove([decodeURIComponent(path)])
       }
     }
     
