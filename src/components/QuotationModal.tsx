@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Save, Upload, Sparkles, FileText, Loader2 } from 'lucide-react'
-import { uploadToStorage } from '../lib/supabase'
-import type { BettroiProject } from '../lib/supabase'
+import { X, Save, Upload, Sparkles, FileText, Loader2, Eye, Download, Trash2, Plus, MessageSquare } from 'lucide-react'
+import { uploadToStorage, deleteFromStorage } from '../lib/supabase'
+import type { BettroiProject, QuotationDocument } from '../lib/supabase'
 
 interface QuotationModalProps {
   isOpen: boolean
@@ -31,7 +31,7 @@ export const QuotationModal = ({
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [uploadedFileName, setUploadedFileName] = useState<string>('')
+  const [documents, setDocuments] = useState<QuotationDocument[]>([])
   const [extracting, setExtracting] = useState(false)
   const [keywords, setKeywords] = useState<string[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -40,8 +40,20 @@ export const QuotationModal = ({
   useEffect(() => {
     if (isOpen) {
       setFormData({ ...initialData })
+      // Load existing documents array, or migrate from quote_url
+      const existingDocs: QuotationDocument[] = initialData.documents || []
+      if (existingDocs.length === 0 && initialData.quote_url) {
+        // Migrate legacy single URL to documents array
+        setDocuments([{
+          name: initialData.quote_url.split('/').pop() || 'Document',
+          url: initialData.quote_url,
+          comment: '',
+          uploadedAt: initialData.created_at || new Date().toISOString(),
+        }])
+      } else {
+        setDocuments([...existingDocs])
+      }
       setKeywords([])
-      setUploadedFileName('')
     }
   }, [isOpen, initialData])
 
@@ -49,7 +61,13 @@ export const QuotationModal = ({
     e.preventDefault()
     setSaving(true)
     try {
-      await onSave(formData)
+      // Save documents array and also keep quote_url for backward compatibility
+      const dataToSave = {
+        ...formData,
+        documents,
+        quote_url: documents.length > 0 ? documents[0].url : (formData.quote_url || ''),
+      }
+      await onSave(dataToSave)
       onClose()
     } catch (error) {
       console.error('Error saving:', error)
@@ -65,8 +83,17 @@ export const QuotationModal = ({
       const filePath = `${Date.now()}-${file.name}`
       const { publicUrl } = await uploadToStorage('quotation-docs', filePath, file)
 
-      setFormData(prev => ({ ...prev, quote_url: publicUrl }))
-      setUploadedFileName(file.name)
+      const newDoc: QuotationDocument = {
+        name: file.name,
+        url: publicUrl,
+        comment: '',
+        uploadedAt: new Date().toISOString(),
+      }
+      setDocuments(prev => [...prev, newDoc])
+      // Also set quote_url for backward compat
+      if (!formData.quote_url) {
+        setFormData(prev => ({ ...prev, quote_url: publicUrl }))
+      }
     } catch (error: any) {
       console.error('Upload error:', error)
       alert('Upload failed: ' + (error?.message || 'Unknown error. Check console for details.'))
@@ -78,6 +105,7 @@ export const QuotationModal = ({
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) handleFileUpload(file)
+    if (e.target) e.target.value = ''
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -87,8 +115,22 @@ export const QuotationModal = ({
     if (file) handleFileUpload(file)
   }
 
+  const removeDocument = (index: number) => {
+    const doc = documents[index]
+    // Delete from storage if it's a Supabase URL
+    const storagePath = doc.url.split('/quotation-docs/')[1]
+    if (storagePath) {
+      deleteFromStorage('quotation-docs', [decodeURIComponent(storagePath)])
+    }
+    setDocuments(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const updateDocComment = (index: number, comment: string) => {
+    setDocuments(prev => prev.map((doc, i) => i === index ? { ...doc, comment } : doc))
+  }
+
   const handleExtractWithAI = async () => {
-    const context = formData.description || uploadedFileName || 'quotation document'
+    const context = formData.description || documents.map(d => d.name).join(', ') || 'quotation document'
     setExtracting(true)
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY
@@ -174,7 +216,7 @@ export const QuotationModal = ({
             {/* Amount */}
             <div>
               <label className="block text-sm text-gray-700 mb-1">
-                Amount (₹) <span className="text-red-500">*</span>
+                Amount ({'\u20B9'}) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -218,7 +260,7 @@ export const QuotationModal = ({
               </select>
             </div>
 
-            {/* Quote URL */}
+            {/* Quote URL (manual) */}
             <div>
               <label className="block text-sm text-gray-700 mb-1">Quotation Document URL</label>
               <input
@@ -242,15 +284,74 @@ export const QuotationModal = ({
               />
             </div>
 
-            {/* File Upload Section */}
-            <div className="border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+            {/* Documents Section - Multi-file with comments */}
+            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
               <p className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-emerald-600" />
-                Upload Document (PDF / Image)
+                Documents ({documents.length})
               </p>
 
+              {/* List of uploaded documents */}
+              {documents.length > 0 && (
+                <div className="space-y-3 mb-4">
+                  {documents.map((doc, i) => (
+                    <div key={i} className="bg-white border border-gray-200 rounded-xl p-3 space-y-2">
+                      {/* File info row */}
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-900 font-medium truncate">{doc.name}</p>
+                          <p className="text-xs text-gray-400">
+                            {new Date(doc.uploadedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0">
+                          <a
+                            href={doc.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            title="View"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </a>
+                          <a
+                            href={doc.url}
+                            download={doc.name}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Download"
+                          >
+                            <Download className="w-4 h-4" />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => removeDocument(i)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      {/* Comment field */}
+                      <div className="flex items-start gap-2">
+                        <MessageSquare className="w-3.5 h-3.5 text-gray-400 mt-2 flex-shrink-0" />
+                        <input
+                          type="text"
+                          value={doc.comment || ''}
+                          onChange={e => updateDocComment(i, e.target.value)}
+                          placeholder="Add a comment for this file..."
+                          className="flex-1 px-2 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg text-gray-700 focus:ring-1 focus:ring-emerald-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload area */}
               <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+                className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${
                   dragOver ? 'border-emerald-400 bg-emerald-50' : 'border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
                 }`}
                 onDragOver={e => { e.preventDefault(); setDragOver(true) }}
@@ -270,22 +371,22 @@ export const QuotationModal = ({
                     <Loader2 className="w-5 h-5 animate-spin" />
                     <span className="text-sm">Uploading...</span>
                   </div>
-                ) : uploadedFileName ? (
-                  <div className="flex items-center justify-center gap-2 text-emerald-600">
-                    <FileText className="w-5 h-5" />
-                    <span className="text-sm font-medium">{uploadedFileName}</span>
-                  </div>
                 ) : (
                   <div className="text-gray-500">
-                    <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm">Drag & drop or click to upload</p>
-                    <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG, DOCX</p>
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <Plus className="w-5 h-5 text-emerald-500" />
+                      <Upload className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <p className="text-sm font-medium text-emerald-600">
+                      {documents.length > 0 ? 'Add More Files' : 'Upload Document'}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">Drag & drop or click | PDF, JPG, PNG, DOCX</p>
                   </div>
                 )}
               </div>
 
               {/* Extract with AI */}
-              {(uploadedFileName || formData.quote_url || formData.description) && (
+              {(documents.length > 0 || formData.quote_url || formData.description) && (
                 <div className="mt-3">
                   <button
                     type="button"

@@ -18,9 +18,9 @@
 import { useEffect, useState, useRef } from 'react'
 import {
   Plus, X, Save, Upload, Sparkles, FileText, Loader2,
-  LayoutList, LayoutGrid, Calendar, ExternalLink, Trash2, Edit2
+  LayoutList, LayoutGrid, Calendar, ExternalLink, Trash2, Edit2, Eye, Download
 } from 'lucide-react'
-import { supabase, uploadToStorage } from '../lib/supabase'
+import { supabase, uploadToStorage, deleteFromStorage } from '../lib/supabase'
 
 interface MeetingMinuteEntry {
   id: string
@@ -102,15 +102,26 @@ const EntryCard = ({
       )}
 
       {entry.file_url && (
-        <a
-          href={entry.file_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-xs text-emerald-600 hover:text-emerald-700 transition-colors truncate"
-        >
-          <ExternalLink className="w-3 h-3 flex-shrink-0" />
-          <span className="truncate">View Attachment</span>
-        </a>
+        <div className="flex items-center gap-2">
+          <a
+            href={entry.file_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+            title="View"
+          >
+            <Eye className="w-3.5 h-3.5" />
+          </a>
+          <a
+            href={entry.file_url}
+            download
+            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Download"
+          >
+            <Download className="w-3.5 h-3.5" />
+          </a>
+          <span className="text-xs text-gray-400 truncate">{entry.file_url.split('/').pop()}</span>
+        </div>
       )}
     </div>
   )
@@ -155,9 +166,14 @@ const EntryRow = ({
       </td>
       <td className="px-4 py-3">
         {entry.file_url && (
-          <a href={entry.file_url} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-emerald-700">
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          <div className="flex items-center gap-1">
+            <a href={entry.file_url} target="_blank" rel="noopener noreferrer" className="p-1 text-emerald-600 hover:bg-emerald-50 rounded" title="View">
+              <Eye className="w-3.5 h-3.5" />
+            </a>
+            <a href={entry.file_url} download className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="Download">
+              <Download className="w-3.5 h-3.5" />
+            </a>
+          </div>
         )}
       </td>
       <td className="px-4 py-3">
@@ -351,40 +367,74 @@ const EntryModal = ({
                 <FileText className="w-4 h-4 text-emerald-600" />
                 Upload Document (PDF / Image)
               </p>
-              <div
-                className={`border-2 border-dashed rounded-lg p-5 text-center cursor-pointer transition-colors ${
-                  dragOver ? 'border-emerald-400 bg-emerald-50' : 'border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
-                }`}
-                onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png,.docx"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                />
-                {uploading ? (
-                  <div className="flex items-center justify-center gap-2 text-emerald-600">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span className="text-sm">Uploading...</span>
+
+              {/* Show existing file with view/download/delete */}
+              {fileUrl && !uploading ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl">
+                    <FileText className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900 font-medium truncate">
+                        {uploadedFileName || fileUrl.split('/').pop() || 'Document'}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">{fileUrl}</p>
+                    </div>
+                    <div className="flex gap-1 flex-shrink-0">
+                      <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="View">
+                        <Eye className="w-4 h-4" />
+                      </a>
+                      <a href={fileUrl} download className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Download">
+                        <Download className="w-4 h-4" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const storagePath = fileUrl.split('/meeting-docs/')[1]
+                          if (storagePath) deleteFromStorage('meeting-docs', [decodeURIComponent(storagePath)])
+                          setFileUrl('')
+                          setUploadedFileName('')
+                        }}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+                        title="Remove"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                ) : uploadedFileName ? (
-                  <div className="flex items-center justify-center gap-2 text-emerald-600">
-                    <FileText className="w-5 h-5" />
-                    <span className="text-sm font-medium">{uploadedFileName}</span>
-                  </div>
-                ) : (
-                  <div className="text-gray-500">
-                    <Upload className="w-7 h-7 mx-auto mb-1 text-gray-400" />
-                    <p className="text-sm">Drag & drop or click to upload</p>
-                    <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG, DOCX</p>
-                  </div>
-                )}
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                  >
+                    Replace with new file
+                  </button>
+                  <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.docx" onChange={handleFileInputChange} className="hidden" />
+                </div>
+              ) : (
+                <div
+                  className={`border-2 border-dashed rounded-lg p-5 text-center cursor-pointer transition-colors ${
+                    dragOver ? 'border-emerald-400 bg-emerald-50' : 'border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
+                  }`}
+                  onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.docx" onChange={handleFileInputChange} className="hidden" />
+                  {uploading ? (
+                    <div className="flex items-center justify-center gap-2 text-emerald-600">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span className="text-sm">Uploading...</span>
+                    </div>
+                  ) : (
+                    <div className="text-gray-500">
+                      <Upload className="w-7 h-7 mx-auto mb-1 text-gray-400" />
+                      <p className="text-sm">Drag & drop or click to upload</p>
+                      <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG, DOCX</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Extract with AI */}
               {(uploadedFileName || fileUrl || content || title) && (

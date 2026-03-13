@@ -98,6 +98,13 @@ export interface BettroiTransaction {
   created_at: string
 }
 
+export interface QuotationDocument {
+  name: string
+  url: string
+  comment?: string
+  uploadedAt: string
+}
+
 export interface BettroiQuotation {
   id: string
   project_id?: string
@@ -107,6 +114,7 @@ export interface BettroiQuotation {
   status: 'sent_to_bt' | 'bt_sent_to_client' | 'client_accepted' | 'sent_to_bt_revision' | 'draft' | 'rejected_by_client' | 'on_hold' | 'client_revision' | 'expired' | 'negotiating' | 'sent' | 'accepted' | 'rejected' | 'revised'
   notes?: string
   quote_url?: string
+  documents?: QuotationDocument[]
   created_at: string
   bettroi_projects?: { name: string }
 }
