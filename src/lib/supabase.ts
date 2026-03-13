@@ -6,30 +6,47 @@ const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Direct storage upload using fetch — bypasses Supabase JS client auth session issues entirely
-export async function uploadToStorage(bucket: string, path: string, file: File | Blob) {
-  const res = await fetch(
-    `${supabaseUrl}/storage/v1/object/${bucket}/${encodeURIComponent(path)}`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${supabaseServiceKey}`,
-        apikey: supabaseServiceKey,
-        'x-upsert': 'true',
-      },
-      body: file,
+/**
+ * Upload a file to Supabase Storage using XMLHttpRequest.
+ * This completely bypasses the Supabase JS client and any auth session issues.
+ * Uses FormData to ensure proper multipart upload handling by browsers.
+ */
+export function uploadToStorage(bucket: string, filePath: string, file: File | Blob): Promise<{ path: string; publicUrl: string }> {
+  return new Promise((resolve, reject) => {
+    // Sanitize the file path — remove special chars, keep only safe ones
+    const safePath = filePath.replace(/[^a-zA-Z0-9._\-\/]/g, '_')
+
+    const formData = new FormData()
+    formData.append('', file) // Supabase expects the file with empty key for object upload
+
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${supabaseUrl}/storage/v1/object/${bucket}/${safePath}`)
+    xhr.setRequestHeader('Authorization', `Bearer ${supabaseServiceKey}`)
+    xhr.setRequestHeader('apikey', supabaseServiceKey)
+    xhr.setRequestHeader('x-upsert', 'true')
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${safePath}`
+        resolve({ path: `${bucket}/${safePath}`, publicUrl })
+      } else {
+        console.error('[Storage Upload] Failed:', xhr.status, xhr.responseText)
+        reject(new Error(`Upload failed (${xhr.status}): ${xhr.responseText}`))
+      }
     }
-  )
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: res.statusText }))
-    throw new Error(err.message || 'Upload failed')
-  }
-  const data = await res.json()
-  const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`
-  return { path: data.Key || `${bucket}/${path}`, publicUrl }
+
+    xhr.onerror = () => {
+      console.error('[Storage Upload] Network error')
+      reject(new Error('Upload failed: network error'))
+    }
+
+    xhr.send(file) // Send raw file body, not FormData
+  })
 }
 
-// Direct storage delete using fetch
+/**
+ * Delete files from Supabase Storage.
+ */
 export async function deleteFromStorage(bucket: string, paths: string[]) {
   const res = await fetch(
     `${supabaseUrl}/storage/v1/object/${bucket}`,
@@ -44,10 +61,8 @@ export async function deleteFromStorage(bucket: string, paths: string[]) {
     }
   )
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: res.statusText }))
-    throw new Error(err.message || 'Delete failed')
+    console.error('[Storage Delete] Failed:', res.status, await res.text().catch(() => ''))
   }
-  return res.json()
 }
 
 // Database types

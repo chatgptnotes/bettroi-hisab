@@ -13,6 +13,7 @@ import { PendingPayments } from './pages/PendingPayments'
 import { Setup } from './pages/Setup'
 import { MeetingMinutes } from './pages/MeetingMinutes'
 import { WorkOrders } from './pages/WorkOrders'
+import { StorageDebug } from './pages/StorageDebug'
 
 function AppRoutes() {
   const { user, loading } = useAuth()
@@ -32,6 +33,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/setup" element={<Setup />} />
+      <Route path="/storage-debug" element={<StorageDebug />} />
       <Route
         path="/*"
         element={

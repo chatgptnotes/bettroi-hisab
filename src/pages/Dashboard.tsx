@@ -96,7 +96,7 @@ export const Dashboard = () => {
       const docs = [...getTransactionDocs(txId), newDoc]
       await supabase.from('bettroi_transactions').update({ documents: docs }).eq('id', txId)
       await fetchDashboardData()
-    } catch { alert('Upload failed') }
+    } catch (err: any) { alert('Upload failed: ' + (err?.message || 'Unknown error')) }
     setUploadingDoc(false)
   }
 

@@ -67,9 +67,9 @@ export const QuotationModal = ({
 
       setFormData(prev => ({ ...prev, quote_url: publicUrl }))
       setUploadedFileName(file.name)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error)
-      alert('Upload failed. Please check the storage bucket exists.')
+      alert('Upload failed: ' + (error?.message || 'Unknown error. Check console for details.'))
     } finally {
       setUploading(false)
     }

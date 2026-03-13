@@ -233,7 +233,7 @@ const EntryModal = ({
       setUploadedFileName(file.name)
     } catch (err) {
       console.error('Upload error:', err)
-      alert('Upload failed. Check that the meeting-docs storage bucket exists.')
+      alert('Upload failed: ' + ((err as any)?.message || 'Unknown error. Check console.'))
     } finally {
       setUploading(false)
     }
