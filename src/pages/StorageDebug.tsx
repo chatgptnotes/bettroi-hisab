@@ -220,11 +220,6 @@ export const StorageDebug = () => {
     setRunning(null)
   }
 
-  const handleFileTest = (testFn: (bucket: string, file: File) => Promise<void>, bucket: string) => {
-    setSelectedTest(`${testFn.name}-${bucket}`)
-    fileInputRef.current?.click()
-  }
-
   const onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !selectedTest) return

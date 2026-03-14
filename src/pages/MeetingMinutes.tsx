@@ -18,7 +18,7 @@
 import { useEffect, useState, useRef } from 'react'
 import {
   Plus, X, Save, Upload, Sparkles, FileText, Loader2,
-  LayoutList, LayoutGrid, Calendar, ExternalLink, Trash2, Edit2, Eye, Download
+  LayoutList, LayoutGrid, Calendar, Trash2, Edit2, Eye, Download
 } from 'lucide-react'
 import { supabase, uploadToStorage, deleteFromStorage } from '../lib/supabase'
 
